@@ -1,0 +1,16 @@
+{
+    "cSpell.words": [
+        "MONGODB",
+        "SENDGRID",
+        "knecthub",
+        "linkedin",
+        "sendnotification",
+        "upsert"
+    ],
+    "cSpell.ignoreWords": [
+        "recaptcha",
+        "recaptcha token",
+        "token"
+    ],
+    "typescript.tsdk": "node_modules\\typescript\\lib"
+}

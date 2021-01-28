@@ -1,0 +1,17 @@
+image: node:latest
+
+cache:
+  paths:
+    - node_modules/
+    - .yarn
+
+stages:
+  - build
+
+Build:
+  stage: build
+  before_script:
+    - yarn config set cache-folder .yarn
+    - yarn install
+  script:
+    - yarn build
