@@ -2,7 +2,8 @@ import {
   TokenHash,
   decryptToken,
   encryptToken,
-  generateUserAccessTokens,
+  generateAccessToken,
+  verifyToken,
 } from '../utils/token.utils';
 
 import Token from '../models/Token';
@@ -15,7 +16,6 @@ import jwt from 'jsonwebtoken';
 import mail from '../services/mail';
 import { responseErrors } from '../helpers/response.helpers';
 import { validationResult } from 'express-validator';
-import { verifyPasswordResetToken } from '../utils/password.utils';
 
 /* -------------------------------------------------------------------------- */
 /*                           Password Reset Request                           */
@@ -28,7 +28,7 @@ async function RequestResetLink(req: express.Request, res: express.Response) {
     const user = await User.findOne({ email });
 
     if (user) {
-      const token = await user.generatePasswordResetToken();
+      const token = await user.createPasswordResetToken();
 
       const hash = encryptToken(token);
 
@@ -66,7 +66,7 @@ async function VerifyResetToken(req: express.Request, res: express.Response) {
 
     const resetToken = decryptToken(hash);
 
-    const isValidResetToken = await verifyPasswordResetToken(resetToken);
+    const isValidResetToken = await verifyToken(resetToken, 'password_reset');
 
     if (!isValidResetToken) return res.status(400).send('Invalid token');
 
@@ -120,7 +120,7 @@ const ResetPassword = async (req: express.Request, res: express.Response) => {
 
     await tokenQuery.save();
 
-    const [accessToken, refreshToken] = await generateUserAccessTokens(tokenQuery.user.id);
+    const [accessToken, refreshToken] = await generateAccessToken(tokenQuery.user.id);
 
     return res
       .cookie('accessToken', accessToken, {

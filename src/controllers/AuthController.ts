@@ -7,7 +7,7 @@ import * as queryString from 'query-string';
 
 import config from '../config';
 import { responseErrors, setResponseCookies } from '../helpers/response.helpers';
-import { generateUserAccessTokens } from '../utils/token.utils';
+import { generateAccessToken } from '../utils/token.utils';
 import { User } from '../models';
 import Token from '../models/Token';
 
@@ -34,7 +34,7 @@ async function Login(req: express.Request, res: express.Response) {
       return res.status(400).send(responseErrors([{ message: 'Invalid login details' }]));
 
     // generate access and refresh token
-    const { accessToken, refreshToken } = await user.generateAccessToken();
+    const { accessToken, refreshToken } = await user.createAccessToken();
 
     return res
       .cookie('accessToken', accessToken, { httpOnly: true, expires: config.COOKIE_EXPIRATION })
@@ -143,7 +143,7 @@ export const AuthLinkedIn = async (req: express.Request, res: express.Response) 
       //     .identifiers[0].identifier,
       // });
 
-      const [accessToken, refreshToken] = await generateUserAccessTokens(user.id);
+      const [accessToken, refreshToken] = await generateAccessToken(user.id);
 
       setResponseCookies(
         {
@@ -173,7 +173,7 @@ export const AuthLinkedIn = async (req: express.Request, res: express.Response) 
 
       if (!user) throw { message: 'User not found' };
 
-      const [accessToken, refreshToken] = await generateUserAccessTokens(user.id);
+      const [accessToken, refreshToken] = await generateAccessToken(user.id);
 
       setResponseCookies(
         {

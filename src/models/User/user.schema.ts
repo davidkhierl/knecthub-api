@@ -1,7 +1,7 @@
 import {
-  generateAccessToken,
-  generateEmailVerificationToken,
-  generatePasswordResetToken,
+  createAccessToken,
+  createEmailVerificationToken,
+  createPasswordResetToken,
 } from './user.method';
 
 import Token from '../Token';
@@ -49,16 +49,11 @@ UserSchema.virtual('fullName').get(function (this: UserDocument) {
 });
 
 // methods
-UserSchema.methods.generateEmailVerificationToken = generateEmailVerificationToken;
-UserSchema.methods.generatePasswordResetToken = generatePasswordResetToken;
-UserSchema.methods.generateAccessToken = generateAccessToken;
+UserSchema.methods.createEmailVerificationToken = createEmailVerificationToken;
+UserSchema.methods.createPasswordResetToken = createPasswordResetToken;
+UserSchema.methods.createAccessToken = createAccessToken;
 
-// create the user profile.
-// UserSchema.post('save', function (user: UserDocument) {
-//   return Profile.create({ user: user.id });
-// });
-
-// delete user associated documents.
+// Post delete hooks
 UserSchema.post('findOneAndDelete', async function (user: UserDocument) {
   // delete user associated tokens.
   await Token.deleteMany({ user: user.id });

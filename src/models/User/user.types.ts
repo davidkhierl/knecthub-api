@@ -20,9 +20,9 @@ export interface User {
 }
 
 export interface UserMethod {
-  generateEmailVerificationToken: (expiresIn?: Date) => Promise<string>;
-  generatePasswordResetToken: () => Promise<string>;
-  generateAccessToken: () => Promise<{ accessToken: string; refreshToken: string }>;
+  createEmailVerificationToken: (expiresIn?: Date) => Promise<string>;
+  createPasswordResetToken: () => Promise<string>;
+  createAccessToken: () => Promise<{ accessToken: string; refreshToken: string }>;
 }
 
 export interface UserVirtual {

@@ -97,7 +97,7 @@ async function RegisterUser(req: express.Request, res: express.Response) {
 
     // await newUser.populate('profile').execPopulate()
     // generate email verification token
-    const token = await newUser.generateEmailVerificationToken(dayjs().add(72, 'hour').toDate());
+    const token = await newUser.createEmailVerificationToken(dayjs().add(72, 'hour').toDate());
 
     const hash = encryptToken(token);
 
@@ -118,7 +118,7 @@ async function RegisterUser(req: express.Request, res: express.Response) {
     });
 
     // generate access and refresh token
-    const { accessToken, refreshToken } = await newUser.generateAccessToken();
+    const { accessToken, refreshToken } = await newUser.createAccessToken();
 
     return res
       .location(resourceLocation(req, newUser.id))
