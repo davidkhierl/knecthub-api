@@ -67,10 +67,10 @@ async function RegisterUser(req: express.Request, res: express.Response) {
     const { firstName, lastName, company, email, password } = req.body;
 
     // check if email is already registered
-    const user = await User.findOne({ 'emails.email': email });
+    const userQuery = await User.findOne({ 'emails.email': email });
 
     // return if user with the same email is already in use.
-    if (user)
+    if (userQuery)
       return res
         .status(400)
         .send(
@@ -84,20 +84,19 @@ async function RegisterUser(req: express.Request, res: express.Response) {
     });
 
     // proceed creating user
-    const newUser = await User.create({
+    const user = await User.create({
       firstName,
       lastName,
       emails: { email, type: 'primary', isVisible: true },
       password: await bcrypt.hash(password, await bcrypt.genSalt(10)),
-      profile: profile.id,
+      profile,
     });
 
     // populate user profile
-    await newUser.populate('profile').execPopulate();
+    await user.populate('profile').execPopulate();
 
-    // await newUser.populate('profile').execPopulate()
     // generate email verification token
-    const token = await newUser.createEmailVerificationToken(dayjs().add(72, 'hour').toDate());
+    const token = await user.createEmailVerificationToken(dayjs().add(72, 'hour').toDate());
 
     const hash = encryptToken(token);
 
@@ -117,13 +116,13 @@ async function RegisterUser(req: express.Request, res: express.Response) {
     });
 
     // generate access and refresh token
-    const { accessToken, refreshToken } = await newUser.createAccessToken();
+    const { accessToken, refreshToken } = await user.createAccessToken();
 
     return res
-      .location(resourceLocation(req, newUser.id))
+      .location(resourceLocation(req, user.id))
       .cookie('accessToken', accessToken, { httpOnly: true, expires: config.COOKIE_EXPIRATION })
       .cookie('refreshToken', refreshToken, { httpOnly: true, expires: config.COOKIE_EXPIRATION })
-      .send(newUser);
+      .send(user);
   } catch (error) {
     // return server error.
     return res.status(500).send(error.message);

@@ -30,8 +30,6 @@ async function Login(req: express.Request, res: express.Response) {
       emails: { $elemMatch: { email, type: 'primary' } },
     }).populate('profile');
 
-    console.log(user);
-
     if (!user) return res.status(404).send(responseErrors([{ message: 'User does not exist' }]));
 
     if (!(await bcrypt.compare(password, user.password)))

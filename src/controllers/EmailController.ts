@@ -5,11 +5,12 @@ import { User } from '../models';
 import config from '../config';
 import dayjs from 'dayjs';
 import express from 'express';
+import { find } from 'lodash';
 import jwt from 'jsonwebtoken';
 import { responseErrors } from '../helpers/response.helpers';
 
 // Verify user email
-const VerifyEmail = async (req: express.Request, res: express.Response) => {
+async function VerifyEmail(req: express.Request, res: express.Response) {
   try {
     const { token, email } = req.query as { token: string; email: string };
 
@@ -63,6 +64,45 @@ const VerifyEmail = async (req: express.Request, res: express.Response) => {
 
     return res.status(500).send('Server error');
   }
-};
+}
 
-export default { VerifyEmail };
+// Update primary email
+async function UpdatePrimaryEmail(req: express.Request, res: express.Response) {
+  try {
+    const { email } = req.body as { email: string };
+
+    const emailQuery = await User.findOne({
+      _id: req.user.id,
+      emails: { $elemMatch: { email, type: 'pendingPrimary' } },
+    });
+
+    if (find(emailQuery?.emails, { email, type: 'primary' }))
+      return res.status(400).send({ message: `${email} is already the primary email.` });
+
+    if (emailQuery)
+      return res.status(400).send({
+        message: 'Email already have a pending confirmation.',
+      });
+
+    const userQuery = await User.findById(req.user.id);
+
+    if (!userQuery) return res.status(400).send('Invalid user.');
+
+    userQuery.emails.push({ email, type: 'pendingPrimary', confirmed: false, isVisible: false });
+
+    await userQuery.save();
+
+    // TODO: WORK IN PROGRESS
+    // const confirmToken = await Token.create({user: req.user.id, })
+
+    // const token = userQuery.createEmailVerificationToken(dayjs().add(72, 'hour').toDate());
+
+    return res.status(200).send({ message: 'Confirm your email to complete the changes.' });
+  } catch (error) {
+    console.error(error.message);
+
+    return res.status(500).send('Server error');
+  }
+}
+
+export default { VerifyEmail, UpdatePrimaryEmail };
