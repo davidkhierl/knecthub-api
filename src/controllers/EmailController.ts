@@ -59,7 +59,7 @@ const VerifyEmail = async (req: express.Request, res: express.Response) => {
     if (error.message === 'jwt malformed')
       return res
         .status(400)
-        .send(responseErrors([{ message: 'Invalid token', location: 'query', param: 'token' }]));
+        .send(responseErrors({ message: 'Invalid token', location: 'query', param: 'token' }));
 
     return res.status(500).send('Server error');
   }
