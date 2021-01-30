@@ -26,7 +26,11 @@ async function Login(req: express.Request, res: express.Response) {
 
     const { email, password } = <{ email: string; password: string }>req.body;
 
-    const user = await User.findOne({ email }).populate('profile');
+    const user = await User.findOne({
+      emails: { $elemMatch: { email, type: 'primary' } },
+    }).populate('profile');
+
+    console.log(user);
 
     if (!user) return res.status(404).send(responseErrors([{ message: 'User does not exist' }]));
 

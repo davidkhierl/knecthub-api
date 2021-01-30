@@ -60,7 +60,7 @@ async function authenticate(
     if (!user) return res.status(401).send('Unauthorized: Invalid user.');
 
     req.user = pick(user.toObject({ getters: true }), [
-      'email',
+      'emails',
       'firstName',
       'id',
       'isAdmin',
@@ -87,7 +87,7 @@ async function authenticate(
 
       if (user)
         req.user = pick(user.toObject({ getters: true }), [
-          'email',
+          'emails',
           'firstName',
           'id',
           'isAdmin',

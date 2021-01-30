@@ -1,7 +1,14 @@
 import { Document, Model } from 'mongoose';
 
-export interface User {
+export interface UserEmails {
   email: string;
+  type: 'primary' | 'secondary' | 'pendingPrimary';
+  confirmed?: boolean;
+  isVisible?: boolean;
+}
+
+export interface User {
+  emails: UserEmails[];
   firstName: string;
   isAdmin?: boolean;
   isVerified?: boolean;
@@ -29,6 +36,6 @@ export interface UserVirtual {
   fullName?: string;
 }
 
-export type UserDocument = User & UserVirtual & UserMethod & Document;
+export interface UserDocument extends User, UserVirtual, UserMethod, Document {}
 
 export type UserModel = Model<UserDocument>;

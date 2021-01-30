@@ -19,10 +19,30 @@ const UserSchema = new mongoose.Schema<UserDocument>({
     trim: true,
     required: true,
   },
-  email: {
-    type: String,
-    required: true,
-  },
+  emails: [
+    {
+      email: {
+        type: String,
+        trim: true,
+        required: true,
+      },
+      type: {
+        type: String,
+        trim: true,
+        required: true,
+      },
+      confirmed: {
+        type: Boolean,
+        trim: true,
+        default: false,
+      },
+      isVisible: {
+        type: Boolean,
+        trim: true,
+      },
+      _id: false,
+    },
+  ],
   password: {
     type: String,
     required: true,

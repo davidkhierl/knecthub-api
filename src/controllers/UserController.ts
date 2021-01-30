@@ -67,7 +67,7 @@ async function RegisterUser(req: express.Request, res: express.Response) {
     const { firstName, lastName, company, email, password } = req.body;
 
     // check if email is already registered
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ 'emails.email': email });
 
     // return if user with the same email is already in use.
     if (user)
@@ -87,7 +87,7 @@ async function RegisterUser(req: express.Request, res: express.Response) {
     const newUser = await User.create({
       firstName,
       lastName,
-      email,
+      emails: { email, type: 'primary', isVisible: true },
       password: await bcrypt.hash(password, await bcrypt.genSalt(10)),
       profile: profile.id,
     });
@@ -104,12 +104,11 @@ async function RegisterUser(req: express.Request, res: express.Response) {
     const signedToken = jwt.sign(hash, config.JWT_PASSWORD_RESET_SECRET);
 
     const emailVerificationLink = encodeURI(
-      `${config.CLIENT_URL}/email/verify?token=${signedToken}`
+      `${config.CLIENT_URL}/email/verify?token=${signedToken}?email=${email}`
     );
 
     // Send email verification to email
     // TODO: Create email template in SendGrid.
-    // TODO: Pass in the encrypted email token.
     await mail.send({
       to: email,
       from: config.SUPPORT_MAIL,
@@ -144,7 +143,7 @@ async function UpdateUser(req: express.Request, res: express.Response) {
       req.user.id,
       pick(req.body, ['firstName', 'lastName']),
       { new: true }
-    );
+    ).populate('profile');
 
     // return if user doesn't exist.
     if (!user)

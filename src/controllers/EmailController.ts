@@ -9,10 +9,9 @@ import jwt from 'jsonwebtoken';
 import { responseErrors } from '../helpers/response.helpers';
 
 // Verify user email
-// TODO: After encrypting the email token add decryption here.
 const VerifyEmail = async (req: express.Request, res: express.Response) => {
   try {
-    const token = req.query.token as string;
+    const { token, email } = req.query as { token: string; email: string };
 
     const hash = jwt.verify(token, config.JWT_PASSWORD_RESET_SECRET) as TokenHash;
 
@@ -31,16 +30,21 @@ const VerifyEmail = async (req: express.Request, res: express.Response) => {
       return res.status(400).json(responseErrors({ message: 'Token Expired' }));
 
     // update user email to verified
-    const user = await User.findById(tokenQuery.user);
+    const userQuery = await User.findById(tokenQuery.user);
 
-    if (!user) return res.status(404).json(responseErrors({ message: 'User not found' }));
+    if (!userQuery) return res.status(404).json(responseErrors({ message: 'User not found' }));
 
-    if (user.isVerified)
+    if (userQuery.isVerified)
       return res.status(400).json(responseErrors({ message: 'Already verified' }));
 
-    user.isVerified = true;
+    userQuery.isVerified = true;
 
-    await user.save();
+    await userQuery.save();
+
+    await User.updateOne(
+      { _id: tokenQuery.user, 'emails.email': email },
+      { $set: { 'emails.$.confirmed': true } }
+    );
 
     tokenQuery.consumed = true;
 
