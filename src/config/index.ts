@@ -5,14 +5,12 @@ enum API_VERSIONS {
   v2 = 'v2',
 }
 
-/**
- * TODO: Helpful comment documentation.
- */
 const config = {
   ACCESS_TOKEN_EXPIRATION: '15min',
   API_VERSIONS: API_VERSIONS,
   CLIENT_URL: process.env.CLIENT_URL || '',
   COOKIE_EXPIRATION: moment().add(1, 'year').toDate(),
+  JWT_EMAIL_VERIFICATION_SECRET: process.env.JWT_EMAIL_VERIFICATION_SECRET || '',
   JWT_PASSWORD_RESET_SECRET: process.env.JWT_PASSWORD_RESET_SECRET || '',
   JWT_SECRET: process.env.JWT_SECRET || '',
   LINKEDIN_KEY: process.env.LINKEDIN_KEY || '',

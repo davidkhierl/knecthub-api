@@ -34,9 +34,9 @@ export const setResponseCookies = (
 export interface ResponseError {
   location?: 'body' | 'cookies' | 'headers' | 'params' | 'query' | undefined;
   message: any;
+  nestedErrors?: ValidationError[] | unknown[] | undefined;
   param?: string;
   value?: string;
-  nestedErrors?: ValidationError[] | unknown[] | undefined;
 }
 
 /**

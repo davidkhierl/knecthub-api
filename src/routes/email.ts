@@ -13,11 +13,7 @@ const router = express.Router();
 
 router.get(
   '/verify',
-  [
-    query('token', 'Token is missing').exists({ checkFalsy: true }),
-    query('email', 'Email is missing').exists({ checkFalsy: true }),
-    checkValidationResult,
-  ],
+  [query('token', 'Token is missing').exists({ checkFalsy: true }), checkValidationResult],
   EmailController.VerifyEmail
 );
 

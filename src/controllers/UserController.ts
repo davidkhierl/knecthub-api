@@ -100,10 +100,13 @@ async function RegisterUser(req: express.Request, res: express.Response) {
 
     const hash = encryptToken(token);
 
-    const signedToken = jwt.sign(hash, config.JWT_PASSWORD_RESET_SECRET);
+    const signedToken = jwt.sign(
+      { hash, email, type: 'primary' },
+      config.JWT_EMAIL_VERIFICATION_SECRET
+    );
 
     const emailVerificationLink = encodeURI(
-      `${config.CLIENT_URL}/email/verify?token=${signedToken}&email=${encodeURI(email)}`
+      `${config.CLIENT_URL}/email/verify?token=${signedToken}`
     );
 
     // Send email verification to email
