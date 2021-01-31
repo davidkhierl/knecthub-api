@@ -1,4 +1,5 @@
 import { Document } from 'mongoose';
+import { IToken } from '../Token/token.types';
 import Token from '../../models/Token';
 import { UserDocument } from './user.types';
 import { generateAccessToken } from '../../utils/token.utils';
@@ -38,4 +39,19 @@ export async function createAccessToken(this: UserDocument) {
   const [accessToken, refreshToken] = await generateAccessToken(this.id);
 
   return { accessToken, refreshToken };
+}
+
+export async function createToken(this: UserDocument, type: IToken['type'], expiresIn?: Date) {
+  const token = uuidv4();
+
+  const newToken = new Token({
+    user: this.id,
+    token,
+    type,
+    expiresIn,
+  });
+
+  await newToken.save();
+
+  return token;
 }

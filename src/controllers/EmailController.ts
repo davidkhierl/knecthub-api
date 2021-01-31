@@ -1,4 +1,4 @@
-import { TokenHash, decryptToken } from '../utils/token.utils';
+import { TokenHash, decryptToken, encryptToken } from '../utils/token.utils';
 
 import Token from '../models/Token';
 import { User } from '../models';
@@ -76,9 +76,12 @@ async function UpdatePrimaryEmail(req: express.Request, res: express.Response) {
       emails: { $elemMatch: { email, type: 'pendingPrimary' } },
     });
 
+    console.log(emailQuery?.emails);
+
     if (find(emailQuery?.emails, { email, type: 'primary' }))
       return res.status(400).send({ message: `${email} is already the primary email.` });
 
+    console.log(find(emailQuery?.emails, { email, type: 'primary' }));
     if (emailQuery)
       return res.status(400).send({
         message: 'Email already have a pending confirmation.',
@@ -90,12 +93,29 @@ async function UpdatePrimaryEmail(req: express.Request, res: express.Response) {
 
     userQuery.emails.push({ email, type: 'pendingPrimary', confirmed: false, isVisible: false });
 
-    await userQuery.save();
+    const token = await userQuery.createToken(
+      'email_verification',
+      dayjs().add(1, 'month').toDate()
+    );
+
+    const hash = encryptToken(token);
+
+    const signedToken = jwt.sign(hash, 'ADD-A-SECRET-HERE');
+
+    const emailVerificationLink = encodeURI(
+      `${config.CLIENT_URL}/email/verify?token=${signedToken}&email=${encodeURI(
+        email
+      )}&type=primary`
+    );
+
+    console.log(emailVerificationLink);
 
     // TODO: WORK IN PROGRESS
     // const confirmToken = await Token.create({user: req.user.id, })
 
     // const token = userQuery.createEmailVerificationToken(dayjs().add(72, 'hour').toDate());
+
+    await userQuery.save();
 
     return res.status(200).send({ message: 'Confirm your email to complete the changes.' });
   } catch (error) {

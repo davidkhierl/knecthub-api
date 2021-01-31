@@ -2,6 +2,7 @@ import {
   createAccessToken,
   createEmailVerificationToken,
   createPasswordResetToken,
+  createToken,
 } from './user.method';
 
 import Token from '../Token';
@@ -69,9 +70,10 @@ UserSchema.virtual('fullName').get(function (this: UserDocument) {
 });
 
 // methods
+UserSchema.methods.createAccessToken = createAccessToken;
 UserSchema.methods.createEmailVerificationToken = createEmailVerificationToken;
 UserSchema.methods.createPasswordResetToken = createPasswordResetToken;
-UserSchema.methods.createAccessToken = createAccessToken;
+UserSchema.methods.createToken = createToken;
 
 // Post delete hooks
 UserSchema.post('findOneAndDelete', async function (user: UserDocument) {
