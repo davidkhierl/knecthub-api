@@ -16,7 +16,7 @@ import { v4 as uuid } from 'uuid';
 export async function generateAccessToken(userId: string, refreshToken?: string) {
   const user = await User.findById(userId);
 
-  if (!user) throw new Error('User not found');
+  if (!user) throw new Error('Invalid Token.');
 
   const payload = {
     sub: user.id,

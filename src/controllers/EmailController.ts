@@ -51,6 +51,12 @@ async function VerifyEmail(req: express.Request, res: express.Response) {
 
     await userQuery.save();
 
+    if (type === 'primary')
+      await User.updateOne(
+        { _id: tokenQuery.user, 'emails.email': email },
+        { $set: { 'emails.$.confirmed': true } }
+      );
+
     if (type === 'pendingPrimary') {
       await User.updateOne(
         { _id: tokenQuery.user, 'emails.type': 'primary' },
