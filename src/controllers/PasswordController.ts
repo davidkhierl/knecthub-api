@@ -93,12 +93,15 @@ async function VerifyResetToken(
 /* -------------------------------------------------------------------------- */
 /*                               Reset Password                               */
 /* -------------------------------------------------------------------------- */
-// TODO ---------------------- IN PROGRESS HERE ------------------------------
-const ResetPassword = async (req: express.Request, res: express.Response) => {
+
+const ResetPassword = async (
+  req: express.Request<ParamsDictionary, any, { password: string }, { token: string }>,
+  res: express.Response<StandardResponse>
+) => {
   try {
     const { password } = req.body;
 
-    const token = req.query.token as string;
+    const token = req.query.token;
 
     const hash = jwt.verify(token, config.JWT_PASSWORD_RESET_SECRET) as TokenHash;
 
@@ -112,7 +115,18 @@ const ResetPassword = async (req: express.Request, res: express.Response) => {
     }).populate('user');
 
     if (!tokenQuery || dayjs().isAfter(dayjs(tokenQuery.expiresIn)))
-      return res.status(400).send(responseErrors([{ message: 'Request expired or invalid' }]));
+      return res.status(400).send({
+        message: 'Request expired or invalid.',
+        success: false,
+        errors: [
+          {
+            location: 'query',
+            message: 'Token expired or invalid.',
+            param: 'token',
+            value: token,
+          },
+        ],
+      });
 
     if (dayjs().isAfter(dayjs(tokenQuery.expiresIn))) return false;
 
@@ -148,11 +162,13 @@ const ResetPassword = async (req: express.Request, res: express.Response) => {
     console.error(error.message);
 
     if (error.message === 'jwt malformed')
-      return res
-        .status(400)
-        .send(responseErrors([{ message: 'Invalid token', location: 'query', param: 'token' }]));
+      return res.status(400).send({
+        message: 'Invalid token.',
+        success: false,
+        errors: [{ location: 'query', message: 'Invalid token.', param: 'token' }],
+      });
 
-    return res.status(500).send('Server error 🔴');
+    return res.status(500).send({ message: 'Server error.', success: false });
   }
 };
 
@@ -168,12 +184,11 @@ export const PasswordChange = async (req: express.Request, res: express.Response
   try {
     const user = await User.findById(req.user.id);
 
-    if (!user) return res.status(404).json(responseErrors([{ message: 'User not found' }]));
+    if (!user) return res.status(404).json({ message: 'User not found' });
 
     const passwordMatched = await bcrypt.compare(currentPassword, user.password);
 
-    if (!passwordMatched)
-      return res.status(400).json(responseErrors([{ message: 'Incorrect password' }]));
+    if (!passwordMatched) return res.status(400).json({ message: 'Incorrect password' });
 
     // generate password salt
     const salt = await bcrypt.genSalt(10);

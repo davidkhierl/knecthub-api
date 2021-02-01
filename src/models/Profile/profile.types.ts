@@ -1,6 +1,6 @@
 import { Document, Model } from 'mongoose';
 
-export interface Profile {
+export interface IProfile {
   avatarBgColor?: string;
   bio?: string;
   company?: string;
@@ -15,6 +15,6 @@ export interface ProfileMethod {}
 
 export interface ProfileVirtual {}
 
-export type ProfileDocument = Profile & ProfileVirtual & ProfileMethod & Document;
+export type ProfileDocument = IProfile & ProfileVirtual & ProfileMethod & Document;
 
 export type ProfileModel = Model<ProfileDocument>;

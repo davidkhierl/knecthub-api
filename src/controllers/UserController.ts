@@ -1,6 +1,7 @@
+import { ParamsDictionary, StandardResponse } from '../typings/express';
 import { Profile, User } from '../models';
-import { resourceLocation, responseErrors } from '../helpers/response.helpers';
 
+import { IUser } from '../models/User/user.types';
 import bcrypt from 'bcryptjs';
 import config from '../config';
 import dayjs from 'dayjs';
@@ -10,59 +11,59 @@ import jwt from 'jsonwebtoken';
 import mail from '../services/mail';
 import { pick } from 'lodash';
 import randomColor from 'randomcolor';
+import { resourceLocation } from '../helpers/response.helpers';
 
 /* -------------------------------------------------------------------------- */
 /*                                Get All Users                               */
 /* -------------------------------------------------------------------------- */
-async function GetUsers(_req: express.Request, res: express.Response) {
+async function GetUsers(_req: express.Request, res: express.Response<StandardResponse<IUser[]>>) {
   await User.find({}, (err, users) => {
-    if (err) return res.status(500).send(err);
+    if (err) return res.status(500).send({ message: err, success: false });
 
-    return res.send(users);
+    return res.send({ message: 'All users.', success: true, data: users });
   });
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                  Get User                                  */
 /* -------------------------------------------------------------------------- */
-async function GetUser(req: express.Request, res: express.Response) {
+async function GetUser(req: express.Request, res: express.Response<StandardResponse<IUser>>) {
   try {
-    // find user.
     const user = await User.findById(req.params.userId);
-    if (user) {
-      return res.send(user);
-    } else {
-      return res.status(400).send(
-        responseErrors([
+
+    if (!user)
+      return res.status(400).send({
+        message: 'User not found',
+        success: false,
+        errors: [
           {
+            location: 'params',
             message: 'User not found',
-            location: 'params',
-            param: 'id',
+            param: 'userId',
             value: req.params.userId,
           },
-        ])
-      );
-    }
+        ],
+      });
+
+    return res.send({ data: user, message: '', success: true });
   } catch (error) {
-    if (error.kind === 'ObjectId')
-      return res.status(400).send(
-        responseErrors([
-          {
-            message: 'Invalid User Id',
-            location: 'params',
-            param: 'id',
-            value: req.params.userId,
-          },
-        ])
-      );
-    return res.status(500).send(error);
+    console.error(error.message);
+
+    return res.status(500).send({ message: 'Server error', success: false });
   }
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                Register User                               */
 /* -------------------------------------------------------------------------- */
-async function RegisterUser(req: express.Request, res: express.Response) {
+async function RegisterUser(
+  req: express.Request<
+    ParamsDictionary,
+    any,
+    { firstName: string; lastName: string; company?: string; email: string; password: string }
+  >,
+  res: express.Response<StandardResponse<IUser>>
+) {
   try {
     const { firstName, lastName, company, email, password } = req.body;
 
@@ -71,11 +72,13 @@ async function RegisterUser(req: express.Request, res: express.Response) {
 
     // return if user with the same email is already in use.
     if (userQuery)
-      return res
-        .status(400)
-        .send(
-          responseErrors([{ message: 'Email already in use', param: 'email', location: 'body' }])
-        );
+      return res.status(400).send({
+        message: 'Email already in use.',
+        success: false,
+        errors: [
+          { location: 'body', message: 'Email already in use.', param: 'email', value: email },
+        ],
+      });
 
     // create user profile first
     const profile = await Profile.create({
@@ -125,17 +128,21 @@ async function RegisterUser(req: express.Request, res: express.Response) {
       .location(resourceLocation(req, user.id))
       .cookie('accessToken', accessToken, { httpOnly: true, expires: config.COOKIE_EXPIRATION })
       .cookie('refreshToken', refreshToken, { httpOnly: true, expires: config.COOKIE_EXPIRATION })
-      .send(user);
+      .send({ data: user, message: 'Register success', success: true });
   } catch (error) {
-    // return server error.
-    return res.status(500).send(error.message);
+    console.error(error.message);
+
+    return res.status(500).send({ message: 'Server error.', success: false });
   }
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                 Update User                                */
 /* -------------------------------------------------------------------------- */
-async function UpdateUser(req: express.Request, res: express.Response) {
+async function UpdateUser(
+  req: express.Request<ParamsDictionary, any, { firstName: string; lastName: string }>,
+  res: express.Response<StandardResponse<IUser>>
+) {
   try {
     // only the first name and the last name are allowed to be updated
     // from this endpoint. Profile, Email and password will be controlled
@@ -149,22 +156,27 @@ async function UpdateUser(req: express.Request, res: express.Response) {
 
     // return if user doesn't exist.
     if (!user)
-      return res.status(400).send(
-        responseErrors([
+      return res.status(400).send({
+        message: 'User not found.',
+        success: false,
+        errors: [
           {
             message: 'User not found',
             location: 'params',
             param: 'id',
             value: req.params.userId,
           },
-        ])
-      );
+        ],
+      });
 
     // return updated document.
-    return res.location(resourceLocation(req)).send(user);
+    return res
+      .location(resourceLocation(req))
+      .send({ data: user, message: 'User updated.', success: true });
   } catch (error) {
-    // return server error.
-    return res.status(500).send(error.message);
+    console.error(error.message);
+
+    return res.status(500).send({ message: 'Server error.', success: false });
   }
 }
 
@@ -172,26 +184,29 @@ async function UpdateUser(req: express.Request, res: express.Response) {
 /*                                 Delete User                                */
 /* -------------------------------------------------------------------------- */
 
-async function DeleteUser(req: express.Request, res: express.Response) {
+async function DeleteUser(req: express.Request, res: express.Response<StandardResponse>) {
   try {
     const user = await User.findByIdAndDelete(req.params.userId);
 
     if (!user)
-      return res.status(400).send(
-        responseErrors([
+      return res.status(400).send({
+        message: 'User not found.',
+        success: false,
+        errors: [
           {
-            message: 'User not found',
+            message: 'User not found.',
             location: 'params',
             param: 'id',
             value: req.params.userId,
           },
-        ])
-      );
+        ],
+      });
 
     return res.status(204).end();
   } catch (error) {
-    // return server error.
-    return res.status(500).send(error.message);
+    console.error(error.message);
+
+    return res.status(500).send({ message: 'Server error.', success: false });
   }
 }
 
@@ -199,14 +214,20 @@ async function DeleteUser(req: express.Request, res: express.Response) {
 /*                              Get Current User                              */
 /* -------------------------------------------------------------------------- */
 
-async function GetCurrentUser(req: express.Request, res: express.Response) {
+async function GetCurrentUser(
+  req: express.Request,
+  res: express.Response<StandardResponse<IUser>>
+) {
   try {
     const user = await User.findById(req.user.id).populate('profile');
 
-    return res.send(user);
+    if (!user) res.status(400).send({ message: 'User not found.', success: false });
+
+    return res.send({ data: user, message: 'Current user.', success: true });
   } catch (error) {
-    // return server error.
-    return res.status(500).send(error.message);
+    console.error(error.message);
+
+    return res.status(500).send({ message: 'Server error.', success: false });
   }
 }
 export default { GetUsers, GetUser, RegisterUser, UpdateUser, DeleteUser, GetCurrentUser };

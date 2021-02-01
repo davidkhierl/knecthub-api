@@ -1,5 +1,6 @@
 import { Document, Model } from 'mongoose';
 
+import { IProfile } from '../Profile/profile.types';
 import { IToken } from '../Token/token.types';
 
 export interface IUserEmails {
@@ -17,15 +18,7 @@ export interface IUser {
   lastName: string;
   linkedInId?: string;
   password: string;
-  profile?: {
-    bio?: string;
-    company?: string;
-    contactNumber?: string;
-    coverPhoto?: string;
-    jobTitle?: string;
-    location?: string;
-    profilePicture?: string;
-  };
+  profile?: IProfile;
 }
 
 export interface UserMethod {

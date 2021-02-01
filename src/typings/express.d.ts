@@ -11,7 +11,7 @@ interface StandardResponse<T = any> {
   /**
    * Response data.
    */
-  data?: T | T[];
+  data?: T | null;
   /**
    * Response errors.
    */
@@ -32,7 +32,7 @@ interface StandardResponse<T = any> {
 
 interface ResponseError {
   location?: 'body' | 'cookies' | 'headers' | 'params' | 'query' | undefined;
-  message: any;
+  message?: any;
   nestedErrors?: ValidationError[] | unknown[] | undefined;
   param?: string;
   value?: string;
