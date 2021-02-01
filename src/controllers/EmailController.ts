@@ -82,7 +82,8 @@ async function VerifyEmail(
 
     await tokenQuery.save();
 
-    const user = userQuery.populate('profile');
+    // get the update user
+    const user = await User.findById(tokenQuery.user).populate('profile');
 
     return res.json({ success: true, message: 'Email verified', data: user });
   } catch (error) {
@@ -102,7 +103,7 @@ async function VerifyEmail(
 // Update primary email
 async function UpdatePrimaryEmail(
   req: express.Request<ParamsDictionary, any, { email: string }>,
-  res: express.Response<StandardResponse>
+  res: express.Response<StandardResponse<IUser>>
 ) {
   try {
     const { email } = req.body;
@@ -157,7 +158,12 @@ async function UpdatePrimaryEmail(
       `${config.CLIENT_URL}/email/verify?token=${signedToken}`
     );
 
+    // const user = (await userQuery.save()).populate('profile');
+
     await userQuery.save();
+
+    // get the update user
+    const user = await User.findById(req.user.id).populate('profile');
 
     await mail.send({
       to: email,
@@ -169,6 +175,7 @@ async function UpdatePrimaryEmail(
     return res.status(200).send({
       message: 'Verification email has been sent, Confirm your email to complete the changes.',
       success: true,
+      data: user,
     });
   } catch (error) {
     console.error(error.message);
