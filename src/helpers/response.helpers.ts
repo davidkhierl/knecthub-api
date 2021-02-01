@@ -1,6 +1,5 @@
 import express, { CookieOptions } from 'express';
 
-import { ValidationError } from 'express-validator';
 import getRequestUrl from './getRequestUrl';
 
 /**
@@ -31,21 +30,6 @@ export const setResponseCookies = (
     throw new Error('req parameter is required for updating the current request object');
 };
 
-export interface ResponseError {
-  location?: 'body' | 'cookies' | 'headers' | 'params' | 'query' | undefined;
-  message: any;
-  nestedErrors?: ValidationError[] | unknown[] | undefined;
-  param?: string;
-  value?: string;
-}
-
-/**
- * Wrap errors to a new object
- * @param errors Array of response error
- * @returns New object
- */
-export const responseErrors = (errors: ResponseError[] | ResponseError) => errors;
-
 /**
  * Return the full url path of the given resources.
  * @param req Express request object.
@@ -53,6 +37,8 @@ export const responseErrors = (errors: ResponseError[] | ResponseError) => error
  */
 export const resourceLocation = (req: express.Request, path?: string | string[]) => {
   const serverUrl = getRequestUrl(req);
+
   const resourcePath = path && Array.isArray(path) ? path.join('/') : path;
+
   return `${serverUrl}${resourcePath ? `/${resourcePath}` : ''}`;
 };

@@ -17,6 +17,10 @@ router.get(
   EmailController.VerifyEmail
 );
 
+/* -------------------------------------------------------------------------- */
+/*                   PATCH:PRIVATE {apiPrefix}/email/primary                  */
+/* -------------------------------------------------------------------------- */
+
 router.patch(
   '/primary',
   authenticate,

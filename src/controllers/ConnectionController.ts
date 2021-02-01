@@ -2,7 +2,6 @@ import Connection from '../models/Connection';
 import { NotificationSend } from '../controllers/NotificationController';
 import { User } from '../models';
 import express from 'express';
-import { responseErrors } from '../helpers/response.helpers';
 
 //  Friends & Contacts List
 export const ConnectionList = async (req: express.Request, res: express.Response) => {
@@ -27,7 +26,7 @@ export const ConnectionRequest = async (req: express.Request, res: express.Respo
 
     //  Validate if requestor has record in connection collection
     if (validate.length > 0) {
-      if (!user) return res.status(400).json(responseErrors([{ message: 'User not found' }]));
+      if (!user) return res.status(400).json([{ message: 'User not found' }]);
       const connectionExists = await Connection.find({
         'friends.toUserId': req.body.userId,
       });
@@ -54,8 +53,7 @@ export const ConnectionRequest = async (req: express.Request, res: express.Respo
         { $push: { friends: merged_object } }
       );
 
-      if (!currentUser)
-        return res.status(400).json(responseErrors([{ message: 'User not found' }]));
+      if (!currentUser) return res.status(400).json([{ message: 'User not found' }]);
       //  Create params for notification
       req.body.senderUserId = req.user.id;
       req.body.module = 'Connection';
@@ -69,7 +67,7 @@ export const ConnectionRequest = async (req: express.Request, res: express.Respo
 
       return res.json({ success: true, message: 'Friend request sent!' });
     } else {
-      if (!user) return res.status(400).json(responseErrors([{ message: 'User not found' }]));
+      if (!user) return res.status(400).json([{ message: 'User not found' }]);
 
       const obj1 = { name: user.firstName + ' ' + user.lastName };
       const obj2 = { toUserId: user.id };
@@ -89,8 +87,7 @@ export const ConnectionRequest = async (req: express.Request, res: express.Respo
       //  If receiver has record in connection collection => Update Notification -> friend list
       ConnectionPopulate(req, res);
 
-      if (!currentUser)
-        return res.status(400).json(responseErrors([{ message: 'User not found' }]));
+      if (!currentUser) return res.status(400).json([{ message: 'User not found' }]);
       //  Create params for notification
       req.body.senderUserId = req.user.id;
       req.body.module = 'Connection';
@@ -113,7 +110,7 @@ export const ConnectionRequest = async (req: express.Request, res: express.Respo
 //  Approve Friend Request
 export const ConnectionApprove = async (req: express.Request, res: express.Response) => {
   const user = await User.findById(req.user.id);
-  if (!user) return res.status(400).json(responseErrors([{ message: 'User not found' }]));
+  if (!user) return res.status(400).json([{ message: 'User not found' }]);
   const validate = await Connection.findOne({ userId: req.user.id });
 
   //  Validate if current user has record
@@ -143,8 +140,7 @@ export const ConnectionApprove = async (req: express.Request, res: express.Respo
       const userRequester = await Connection.findOne({
         userId: req.body.userId,
       });
-      if (!userRequester)
-        return res.status(400).json(responseErrors([{ message: 'User not found' }]));
+      if (!userRequester) return res.status(400).json([{ message: 'User not found' }]);
       Connection.findOneAndUpdate(
         {
           _id: userRequester.id,

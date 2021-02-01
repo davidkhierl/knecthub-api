@@ -1,3 +1,4 @@
+import { ParamsDictionary, StandardResponse } from '../typings/express';
 import {
   TokenHash,
   decryptToken,
@@ -14,14 +15,16 @@ import dayjs from 'dayjs';
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import mail from '../services/mail';
-import { responseErrors } from '../helpers/response.helpers';
 import { validationResult } from 'express-validator';
 
 /* -------------------------------------------------------------------------- */
 /*                           Password Reset Request                           */
 /* -------------------------------------------------------------------------- */
 
-async function RequestResetLink(req: express.Request, res: express.Response) {
+async function RequestResetLink(
+  req: express.Request<ParamsDictionary, any, { email: string }>,
+  res: express.Response<StandardResponse>
+) {
   try {
     const { email } = req.body;
 
@@ -44,13 +47,14 @@ async function RequestResetLink(req: express.Request, res: express.Response) {
       });
     }
 
-    // TODO: think of better standard response.
     return res.send({
-      message: 'Check your email.',
+      message:
+        'Email verification sent to your email, please click the link provided inside to complete the request.',
+      success: true,
     });
   } catch (error) {
     console.error(error.message);
-    return res.status(500).send('Server error 🔴');
+    return res.status(500).send({ message: 'Server error.', success: false });
   }
 }
 
@@ -58,9 +62,12 @@ async function RequestResetLink(req: express.Request, res: express.Response) {
 /*                         Verify Password Reset Token                        */
 /* -------------------------------------------------------------------------- */
 
-async function VerifyResetToken(req: express.Request, res: express.Response) {
+async function VerifyResetToken(
+  req: express.Request<ParamsDictionary, any, any, { token: string }>,
+  res: express.Response<StandardResponse>
+) {
   try {
-    const token = req.query.token as string;
+    const token = req.query.token;
 
     const hash = jwt.verify(token, config.JWT_PASSWORD_RESET_SECRET) as TokenHash;
 
@@ -68,20 +75,25 @@ async function VerifyResetToken(req: express.Request, res: express.Response) {
 
     const isValidResetToken = await verifyToken(resetToken, 'password_reset');
 
-    if (!isValidResetToken) return res.status(400).send('Invalid token');
+    if (!isValidResetToken)
+      return res.status(400).send({
+        message: 'Invalid token.',
+        success: false,
+        errors: [{ location: 'query', message: 'Invalid token.', param: 'token', value: token }],
+      });
 
-    return res.send('Valid token');
+    return res.send({ message: 'Password reset token valid.', success: true });
   } catch (error) {
     console.error(error.message);
 
-    return res.status(500).send('Server error');
+    return res.status(500).send({ message: 'Server error.', success: false });
   }
 }
 
 /* -------------------------------------------------------------------------- */
 /*                               Reset Password                               */
 /* -------------------------------------------------------------------------- */
-
+// TODO ---------------------- IN PROGRESS HERE ------------------------------
 const ResetPassword = async (req: express.Request, res: express.Response) => {
   try {
     const { password } = req.body;
