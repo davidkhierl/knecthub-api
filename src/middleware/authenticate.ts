@@ -66,6 +66,7 @@ async function authenticate(
       'isAdmin',
       'isVerified',
       'lastName',
+      'profile',
     ]);
 
     next();
@@ -93,6 +94,7 @@ async function authenticate(
           'isAdmin',
           'isVerified',
           'lastName',
+          'profile',
         ]);
 
       res

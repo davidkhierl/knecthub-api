@@ -15,7 +15,6 @@ import dayjs from 'dayjs';
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import mail from '../services/mail';
-import { validationResult } from 'express-validator';
 
 /* -------------------------------------------------------------------------- */
 /*                           Password Reset Request                           */
@@ -173,22 +172,32 @@ const ResetPassword = async (
 };
 
 // Change password
-// TODO: REFACTOR
-export const PasswordChange = async (req: express.Request, res: express.Response) => {
-  const errors = validationResult(req);
-  // return validation errors
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
-
-  const { currentPassword, newPassword } = req.body;
-
+async function ChangePassword(
+  req: express.Request<ParamsDictionary, any, { currentPassword: string; newPassword: string }>,
+  res: express.Response<StandardResponse>
+) {
   try {
+    const { currentPassword, newPassword } = req.body;
+
     const user = await User.findById(req.user.id);
 
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user) return res.status(404).send({ message: 'User not found', success: false });
 
     const passwordMatched = await bcrypt.compare(currentPassword, user.password);
 
-    if (!passwordMatched) return res.status(400).json({ message: 'Incorrect password' });
+    if (!passwordMatched)
+      return res.status(400).send({
+        message: 'Incorrect password',
+        success: false,
+        errors: [
+          {
+            location: 'body',
+            message: 'Incorrect password.',
+            param: 'currentPassword',
+            value: currentPassword,
+          },
+        ],
+      });
 
     // generate password salt
     const salt = await bcrypt.genSalt(10);
@@ -198,11 +207,12 @@ export const PasswordChange = async (req: express.Request, res: express.Response
 
     await user.save();
 
-    return res.json({ success: true, message: 'Password changed' });
+    return res.send({ message: 'Password changed', success: true });
   } catch (error) {
     console.error(error.message);
-    return res.status(500).send('Server error 🔴');
-  }
-};
 
-export default { RequestResetLink, VerifyResetToken, ResetPassword };
+    return res.status(500).send({ message: 'Server error.', success: false });
+  }
+}
+
+export default { RequestResetLink, VerifyResetToken, ResetPassword, ChangePassword };

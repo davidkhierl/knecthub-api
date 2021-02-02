@@ -1,6 +1,8 @@
+import { ParamsDictionary, StandardResponse } from '../typings/express';
+import { Profile, User } from '../models';
+
 import { IProfile } from '../models/Profile/profile.types';
-import { StandardResponse } from '../typings/express';
-import { User } from '../models';
+import { IUser } from '../models/User/user.types';
 import express from 'express';
 
 /* -------------------------------------------------------------------------- */
@@ -21,4 +23,21 @@ async function GetCurrentUserProfile(
   }
 }
 
-export default { GetCurrentUserProfile };
+async function UpdateProfile(
+  req: express.Request<ParamsDictionary, any, IProfile>,
+  res: express.Response<StandardResponse<IUser>>
+) {
+  try {
+    await Profile.findByIdAndUpdate(req.user.profile, req.body);
+
+    const user = await User.findById(req.user.id).populate('profile');
+
+    return res.send({ data: user, message: 'Profile updated.', success: true });
+  } catch (error) {
+    console.error(error.message);
+
+    return res.status(500).send({ message: 'Server error.', success: false });
+  }
+}
+
+export default { GetCurrentUserProfile, UpdateProfile };
