@@ -1,3 +1,4 @@
+import { StandardResponse } from '../typings/express';
 import express from 'express';
 import { validationResult } from 'express-validator';
 
@@ -10,7 +11,7 @@ import { validationResult } from 'express-validator';
  */
 function checkValidationResult(
   req: express.Request,
-  res: express.Response,
+  res: express.Response<StandardResponse>,
   next: express.NextFunction
 ) {
   const validate = validationResult.withDefaults({
@@ -25,7 +26,10 @@ function checkValidationResult(
 
   const errors = validate(req);
 
-  if (!errors.isEmpty()) return res.status(400).send(errors.array());
+  if (!errors.isEmpty())
+    return res
+      .status(400)
+      .send({ message: 'Validation failed.', success: false, errors: errors.array() });
 
   return next();
 }
