@@ -36,6 +36,9 @@ export function normalizeId(ret: any) {
       ret.id = ret._id.toString();
     }
   }
+
+  if (ret._id === undefined) delete ret.id;
+
   if (typeof ret._id !== 'undefined') {
     delete ret._id;
   }
