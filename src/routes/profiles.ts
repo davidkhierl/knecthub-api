@@ -5,16 +5,14 @@ import express from 'express';
 
 const router = express.Router();
 
-/* -------------------------------------------------------------------------- */
-/*                     GET:PRIVATE {apiPrefix}/profiles/me                    */
-/* -------------------------------------------------------------------------- */
-
+/**
+ * GET:PRIVATE {apiPrefix}/profiles/me
+ */
 router.get('/me', authenticate, ProfileController.GetCurrentUserProfile);
 
-/* -------------------------------------------------------------------------- */
-/*                    PATCH:PRIVATE {apiPrefix}/profiles/me                   */
-/* -------------------------------------------------------------------------- */
-
+/**
+ * PATCH:PRIVATE {apiPrefix}/profiles/me
+ */
 router.patch(
   '/me',
   authenticate,

@@ -7,10 +7,9 @@ import express from 'express';
 
 const router = express.Router();
 
-/* -------------------------------------------------------------------------- */
-/*                   POST:PUBLIC {apiPrefix}/password/reset                   */
-/* -------------------------------------------------------------------------- */
-
+/**
+ * POST:PUBLIC {apiPrefix}/password/reset
+ */
 router.post(
   '/reset',
   [
@@ -20,20 +19,18 @@ router.post(
   PasswordController.RequestResetLink
 );
 
-/* -------------------------------------------------------------------------- */
-/*             GET:PUBLIC {apiPrefix}/password/reset?token={token}            */
-/* -------------------------------------------------------------------------- */
-
+/**
+ * GET:PUBLIC {apiPrefix}/password/reset?token={token}
+ */
 router.get(
   '/reset',
   [query('token', 'Token is missing.').exists({ checkFalsy: true }), checkValidationResult],
   PasswordController.VerifyResetToken
 );
 
-/* -------------------------------------------------------------------------- */
-/*            PATCH:PUBLIC {apiPrefix}/password/reset?token={token}           */
-/* -------------------------------------------------------------------------- */
-
+/**
+ * PATCH:PUBLIC {apiPrefix}/password/reset?token={token}
+ */
 router.patch(
   '/reset',
   [
@@ -60,10 +57,9 @@ router.patch(
   PasswordController.ResetPassword
 );
 
-/* -------------------------------------------------------------------------- */
-/*                      PATCH:PRIVATE {prefix}/password/                      */
-/* -------------------------------------------------------------------------- */
-
+/**
+ * PATCH:PRIVATE {prefix}/password/
+ */
 router.patch(
   '/',
   authenticate,

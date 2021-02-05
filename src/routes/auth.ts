@@ -5,10 +5,9 @@ import express from 'express';
 
 const router = express.Router();
 
-/* -------------------------------------------------------------------------- */
-/*                     POST:PUBLIC {apiPrefix}/auth/login                     */
-/* -------------------------------------------------------------------------- */
-
+/**
+ * POST:PUBLIC {apiPrefix}/auth/login
+ */
 router.post(
   '/login',
   [
@@ -19,10 +18,9 @@ router.post(
   AuthController.Login
 );
 
-/* -------------------------------------------------------------------------- */
-/*                     GET:PUBLIC {apiPrefix}/auth/logout                     */
-/* -------------------------------------------------------------------------- */
-
+/**
+ * GET:PUBLIC {apiPrefix}/auth/logout
+ */
 router.get('/logout', AuthController.Logout);
 
 // @route   POST $prefix/auth/linkedin

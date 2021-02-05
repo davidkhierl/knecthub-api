@@ -7,20 +7,18 @@ import express from 'express';
 
 const router = express.Router();
 
-/* -------------------------------------------------------------------------- */
-/*              GET:PUBLIC {apiPrefix}/email/verify?token={token}             */
-/* -------------------------------------------------------------------------- */
-
+/**
+ * GET:PUBLIC {apiPrefix}/email/verify?token={token}
+ */
 router.get(
   '/verify',
   [query('token', 'Token is missing').exists({ checkFalsy: true }), checkValidationResult],
   EmailController.VerifyEmail
 );
 
-/* -------------------------------------------------------------------------- */
-/*                   PATCH:PRIVATE {apiPrefix}/email/primary                  */
-/* -------------------------------------------------------------------------- */
-
+/**
+ * PATCH:PRIVATE {apiPrefix}/email/primary
+ */
 router.patch(
   '/primary',
   authenticate,

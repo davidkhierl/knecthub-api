@@ -8,10 +8,9 @@ import isAdmin from '../middleware/isAdmin';
 
 const router = express.Router();
 
-/* -------------------------------------------------------------------------- */
-/*            POST:PUBLIC {apiPrefix}/users User Registration Route           */
-/* -------------------------------------------------------------------------- */
-
+/**
+ * POST:PUBLIC {apiPrefix}/users User Registration Route
+ */
 router.post(
   '/',
   [
@@ -46,16 +45,14 @@ router.post(
   UserController.RegisterUser
 );
 
-/* -------------------------------------------------------------------------- */
-/*                      GET:PRIVATE {apiPrefix}/users/me                      */
-/* -------------------------------------------------------------------------- */
-
+/**
+ * GET:PRIVATE {apiPrefix}/users/me
+ */
 router.get('/me', authenticate, UserController.GetCurrentUser);
 
-/* -------------------------------------------------------------------------- */
-/*                     PATCH:PRIVATE {apiPrefix}/users/me                     */
-/* -------------------------------------------------------------------------- */
-
+/**
+ * PATCH:PRIVATE {apiPrefix}/users/me
+ */
 router.patch(
   '/me',
   authenticate,
@@ -78,10 +75,9 @@ router.patch(
   UserController.UpdateUser
 );
 
-/* -------------------------------------------------------------------------- */
-/*                        GET:PRIVATE {apiPrefix}/users/1                       */
-/* -------------------------------------------------------------------------- */
-
+/**
+ * GET:PRIVATE {apiPrefix}/users/1
+ */
 router.get(
   '/:userId',
   authenticate,
@@ -89,22 +85,19 @@ router.get(
   UserController.GetUser
 );
 
-/* -------------------------------------------------------------------------- */
-/*                     DELETE:PRIVATE {apiPrefix}/users/me                    */
-/* -------------------------------------------------------------------------- */
-
+/**
+ * DELETE:PRIVATE {apiPrefix}/users/me
+ */
 router.delete('/me', (_req, res) => res.send('delete current user'));
 
-/* -------------------------------------------------------------------------- */
-/*                         GET:ADMIN {apiPrefix}/users                        */
-/* -------------------------------------------------------------------------- */
-
+/**
+ * GET:ADMIN {apiPrefix}/users
+ */
 router.get('/', authenticate, isAdmin, UserController.GetUsers);
 
-/* -------------------------------------------------------------------------- */
-/*                       PATCH:ADMIN {apiPrefix}/users/1                      */
-/* -------------------------------------------------------------------------- */
-
+/**
+ * PATCH:ADMIN {apiPrefix}/users/1
+ */
 router.patch(
   '/:userId',
   authenticate,
@@ -129,10 +122,9 @@ router.patch(
   UserController.UpdateUser
 );
 
-/* -------------------------------------------------------------------------- */
-/*                      DELETE:ADMIN {apiPrefix}/users/1                      */
-/* -------------------------------------------------------------------------- */
-
+/**
+ * DELETE:ADMIN {apiPrefix}/users/1
+ */
 router.delete(
   '/:userId',
   authenticate,
