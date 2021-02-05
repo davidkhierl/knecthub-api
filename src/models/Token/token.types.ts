@@ -1,7 +1,8 @@
-import { Model, Document, Types } from 'mongoose';
+import { Document, Model, Types } from 'mongoose';
+
 import { UserDocument } from '../User/user.types';
 
-export interface Token {
+export interface IToken {
   user: Types.ObjectId | UserDocument['_id'];
   token: string;
   type: 'email_verification' | 'password_reset' | 'refresh_token';
@@ -13,6 +14,6 @@ export interface Token {
 
 interface TokenMethod {}
 
-export interface TokenDocument extends Token, TokenMethod, Document {}
+export interface TokenDocument extends IToken, TokenMethod, Document {}
 
 export type TokenModel = Model<TokenDocument>;

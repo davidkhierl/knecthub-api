@@ -27,7 +27,9 @@ function serverInit() {
 
   // Api routes
   app.use(`/${config.API_VERSIONS.v1}`, routes);
-  app.use(`/`, (_req, res) => res.send(`© Knecthub 2021`));
+  app.use(/[/]/, (_req, res) => res.send(`© Knecthub 2021`));
+  app.use('*', (_req, res) => res.status(400).send('404 Not Found'));
+
   const server = http.createServer(app);
 
   server.listen(config.PORT, () => {

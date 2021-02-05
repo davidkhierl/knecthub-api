@@ -2,6 +2,7 @@ import Token from '../models/Token';
 import { User } from '../models';
 import config from '../config';
 import crypto from 'crypto';
+import dayjs from 'dayjs';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import { v4 as uuid } from 'uuid';
@@ -12,10 +13,10 @@ import { v4 as uuid } from 'uuid';
  * @param refreshToken Refresh token to be refreshed
  * @returns New access and refresh token
  */
-export async function generateUserAccessTokens(userId: string, refreshToken?: string) {
+export async function generateAccessToken(userId: string, refreshToken?: string) {
   const user = await User.findById(userId);
 
-  if (!user) throw new Error('User not found');
+  if (!user) throw new Error('Invalid Token.');
 
   const payload = {
     sub: user.id,
@@ -107,6 +108,8 @@ export function encryptToken(token: string) {
   };
 }
 
+export type TokenHash = ReturnType<typeof encryptToken>;
+
 /**
  * Utility for decrypting token.
  * @param hash token hash.
@@ -122,4 +125,26 @@ export function decryptToken(hash: TokenHash) {
   return decrypted.toString();
 }
 
-export type TokenHash = ReturnType<typeof encryptToken>;
+/**
+ * Verify token.
+ * @param token string
+ * @param type 'email_verification' | 'password_reset' | 'refresh_token' | undefined
+ * @returns Promise<boolean>
+ */
+export async function verifyToken(
+  token: string,
+  type?: 'email_verification' | 'password_reset' | 'refresh_token' | undefined
+): Promise<boolean> {
+  const query = await Token.findOne({
+    token,
+    type,
+    consumed: false,
+    invalidated: false,
+  });
+
+  if (!query) return false;
+
+  if (dayjs().isAfter(dayjs(query.expiresIn))) return false;
+
+  return true;
+}

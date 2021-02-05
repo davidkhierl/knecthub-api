@@ -1,4 +1,7 @@
-import { TokenHash, decryptToken } from '../utils/token.utils';
+import { IUser, IUserEmails } from '../models/User/user.types';
+import { ParamsDictionary, StandardResponse } from '../typings/express';
+import { TokenHash, decryptToken, encryptToken } from '../utils/token.utils';
+import { find, matches } from 'lodash';
 
 import Token from '../models/Token';
 import { User } from '../models';
@@ -6,15 +9,21 @@ import config from '../config';
 import dayjs from 'dayjs';
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import { responseErrors } from '../helpers/response.helpers';
+import mail from '../services/mail';
 
 // Verify user email
-// TODO: After encrypting the email token add decryption here.
-const VerifyEmail = async (req: express.Request, res: express.Response) => {
+async function VerifyEmail(
+  req: express.Request<ParamsDictionary, any, any, { token: string }>,
+  res: express.Response<StandardResponse<IUser>>
+) {
   try {
-    const token = req.query.token as string;
+    const { token } = req.query;
 
-    const hash = jwt.verify(token, config.JWT_PASSWORD_RESET_SECRET) as TokenHash;
+    const { hash, email, type } = jwt.verify(token, config.JWT_EMAIL_VERIFICATION_SECRET) as {
+      hash: TokenHash;
+      email: string;
+      type: IUserEmails['type'];
+    };
 
     const emailVerificationToken = decryptToken(hash);
 
@@ -24,23 +33,48 @@ const VerifyEmail = async (req: express.Request, res: express.Response) => {
     });
 
     // Verify token
-    if (!tokenQuery) return res.status(400).json(responseErrors({ message: 'Invalid Token' }));
+    if (!tokenQuery || tokenQuery.consumed)
+      return res.status(400).json({ message: 'Invalid Token', success: false });
 
     // check if token expired
     if (dayjs().isAfter(dayjs(tokenQuery.expiresIn)))
-      return res.status(400).json(responseErrors({ message: 'Token Expired' }));
+      return res.status(400).json({ message: 'Token Expired', success: false });
 
     // update user email to verified
-    const user = await User.findById(tokenQuery.user);
+    const userQuery = await User.findById(tokenQuery.user);
 
-    if (!user) return res.status(404).json(responseErrors({ message: 'User not found' }));
+    if (!userQuery) return res.status(404).json({ message: 'User not found', success: false });
 
-    if (user.isVerified)
-      return res.status(400).json(responseErrors({ message: 'Already verified' }));
+    if (userQuery.isVerified && type === 'primary')
+      return res.status(400).json({ message: 'Already verified', success: false });
 
-    user.isVerified = true;
+    if (!userQuery.isVerified && type === 'primary') userQuery.isVerified = true;
 
-    await user.save();
+    await userQuery.save();
+
+    if (type === 'primary')
+      await User.updateOne(
+        { _id: tokenQuery.user, 'emails.email': email },
+        { $set: { 'emails.$.confirmed': true } }
+      );
+
+    if (type === 'pendingPrimary') {
+      await User.updateOne(
+        { _id: tokenQuery.user, 'emails.type': 'primary' },
+        { $set: { 'emails.$.email': email } }
+      );
+
+      await User.updateOne(
+        { _id: tokenQuery.user, emails: { $elemMatch: { email, type: 'pendingPrimary' } } },
+        { $pull: { emails: { email, type: 'pendingPrimary' } } }
+      );
+    }
+
+    if (type === 'secondary')
+      await User.updateOne(
+        { _id: tokenQuery.user, emails: { $elemMatch: { email, type: 'secondary' } } },
+        { $set: { 'emails.$.confirmed': true } }
+      );
 
     tokenQuery.consumed = true;
 
@@ -48,17 +82,106 @@ const VerifyEmail = async (req: express.Request, res: express.Response) => {
 
     await tokenQuery.save();
 
-    return res.json({ success: true, message: 'Email verified' });
+    // get the update user
+    const user = await User.findById(tokenQuery.user).populate('profile');
+
+    return res.json({ success: true, message: 'Email verified', data: user });
   } catch (error) {
     console.error(error.message);
 
     if (error.message === 'jwt malformed')
-      return res
-        .status(400)
-        .send(responseErrors([{ message: 'Invalid token', location: 'query', param: 'token' }]));
+      return res.status(400).send({
+        message: 'Invalid token.',
+        success: false,
+        errors: [{ location: 'query', message: 'Invalid token.', param: 'token' }],
+      });
 
-    return res.status(500).send('Server error');
+    return res.status(500).send({ message: 'Server error.', success: false });
   }
-};
+}
 
-export default { VerifyEmail };
+// Update primary email
+async function UpdatePrimaryEmail(
+  req: express.Request<ParamsDictionary, any, { email: string }>,
+  res: express.Response<StandardResponse<IUser>>
+) {
+  try {
+    const { email } = req.body;
+
+    const userQuery = await User.findById(req.user.id);
+
+    if (!userQuery) return res.status(400).send({ message: 'Unauthorized.', success: false });
+
+    if (find(userQuery?.emails, matches({ email, type: 'primary' })))
+      return res.status(400).send({
+        message: `${email} is already the primary email.`,
+        success: false,
+        errors: [
+          {
+            location: 'body',
+            message: `Already the primary email.`,
+            param: 'email',
+            value: email,
+          },
+        ],
+      });
+
+    if (find(userQuery?.emails, matches({ email, type: 'pendingPrimary' })))
+      return res.status(400).send({
+        message: `${email} already have a pending confirmation.`,
+        success: false,
+        errors: [
+          {
+            location: 'body',
+            message: 'Already have a pending confirmation.',
+            param: 'email',
+            value: email,
+          },
+        ],
+      });
+
+    userQuery.emails.push({ email, type: 'pendingPrimary', confirmed: false, isVisible: false });
+
+    const token = await userQuery.createToken(
+      'email_verification',
+      dayjs().add(1, 'month').toDate()
+    );
+
+    const hash = encryptToken(token);
+
+    const signedToken = jwt.sign(
+      { hash, email, type: 'pendingPrimary' },
+      config.JWT_EMAIL_VERIFICATION_SECRET
+    );
+
+    const emailVerificationLink = encodeURI(
+      `${config.CLIENT_URL}/email/verify?token=${signedToken}`
+    );
+
+    // const user = (await userQuery.save()).populate('profile');
+
+    await userQuery.save();
+
+    // get the update user
+    const user = await User.findById(req.user.id).populate('profile');
+
+    await mail.send({
+      to: email,
+      from: config.SUPPORT_MAIL,
+      subject: 'Email Verification',
+      text: `Please visit this link to verify your email ${emailVerificationLink}`,
+    });
+
+    return res.status(200).send({
+      message: 'Verification email has been sent, Confirm your email to complete the changes.',
+      success: true,
+      data: user,
+    });
+  } catch (error) {
+    console.error(error.message);
+
+    return res.status(500).send({ message: 'Server error', success: false });
+  }
+}
+
+export default { VerifyEmail, UpdatePrimaryEmail };

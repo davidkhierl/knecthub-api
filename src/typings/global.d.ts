@@ -1,9 +1,12 @@
-import { User } from '../models/User/user.types';
+import { IUser } from '../models/User/user.types';
 
 declare global {
   namespace Express {
     interface Request {
-      user: Pick<User, 'firstName' | 'lastName' | 'isVerified' | 'email' | 'isAdmin'> & {
+      user: Pick<
+        IUser,
+        'firstName' | 'lastName' | 'isVerified' | 'emails' | 'isAdmin' | 'profile'
+      > & {
         id?: string;
       };
       auth?: {

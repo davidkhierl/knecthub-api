@@ -1,13 +1,13 @@
+import { StandardResponse } from '../typings/express';
 import express from 'express';
-import { responseErrors } from '../helpers/response.helpers';
 
 const isEmailVerified = async (
   req: express.Request,
-  res: express.Response,
+  res: express.Response<StandardResponse>,
   next: express.NextFunction
 ) => {
   if (req.user.isVerified === false)
-    return res.status(400).json(responseErrors([{ message: 'Email not yet verified' }]));
+    return res.status(400).json({ message: 'Email not yet verified', success: false });
 
   return next();
 };

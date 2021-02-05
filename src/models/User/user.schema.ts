@@ -1,11 +1,13 @@
 import {
-  generateAccessToken,
-  generateEmailVerificationToken,
-  generatePasswordResetToken,
+  createAccessToken,
+  createEmailVerificationToken,
+  createPasswordResetToken,
+  createToken,
 } from './user.method';
 
 import Token from '../Token';
 import { UserDocument } from './user.types';
+import { findByPrimaryEmail } from './user.statics';
 import mongoose from 'mongoose';
 
 const UserSchema = new mongoose.Schema<UserDocument>({
@@ -19,10 +21,30 @@ const UserSchema = new mongoose.Schema<UserDocument>({
     trim: true,
     required: true,
   },
-  email: {
-    type: String,
-    required: true,
-  },
+  emails: [
+    {
+      email: {
+        type: String,
+        trim: true,
+        required: true,
+      },
+      type: {
+        type: String,
+        trim: true,
+        required: true,
+      },
+      confirmed: {
+        type: Boolean,
+        trim: true,
+        default: false,
+      },
+      isVisible: {
+        type: Boolean,
+        trim: true,
+      },
+      _id: false,
+    },
+  ],
   password: {
     type: String,
     required: true,
@@ -49,16 +71,15 @@ UserSchema.virtual('fullName').get(function (this: UserDocument) {
 });
 
 // methods
-UserSchema.methods.generateEmailVerificationToken = generateEmailVerificationToken;
-UserSchema.methods.generatePasswordResetToken = generatePasswordResetToken;
-UserSchema.methods.generateAccessToken = generateAccessToken;
+UserSchema.methods.createAccessToken = createAccessToken;
+UserSchema.methods.createEmailVerificationToken = createEmailVerificationToken;
+UserSchema.methods.createPasswordResetToken = createPasswordResetToken;
+UserSchema.methods.createToken = createToken;
 
-// create the user profile.
-// UserSchema.post('save', function (user: UserDocument) {
-//   return Profile.create({ user: user.id });
-// });
+// static
+UserSchema.statics.findByPrimaryEmail = findByPrimaryEmail;
 
-// delete user associated documents.
+// Post delete hooks
 UserSchema.post('findOneAndDelete', async function (user: UserDocument) {
   // delete user associated tokens.
   await Token.deleteMany({ user: user.id });

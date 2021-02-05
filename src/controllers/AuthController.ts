@@ -2,47 +2,48 @@ import axios from 'axios';
 import bcrypt from 'bcryptjs';
 import CryptoJS from 'crypto-js';
 import express from 'express';
-import _ from 'lodash';
 import * as queryString from 'query-string';
 
 import config from '../config';
-import { responseErrors, setResponseCookies } from '../helpers/response.helpers';
-import { generateUserAccessTokens } from '../utils/token.utils';
+import { setResponseCookies } from '../helpers/response.helpers';
+import { generateAccessToken } from '../utils/token.utils';
 import { User } from '../models';
 import Token from '../models/Token';
-
-// Auth User
-export const AuthUser = (req: express.Request, res: express.Response) => {
-  return res.status(200).json(_.omit(req.user, ['id', 'password']));
-};
+import { IUser } from '../models/User/user.types';
+import { ParamsDictionary, StandardResponse } from '../typings/express';
 
 /* -------------------------------------------------------------------------- */
 /*                                 Login User                                 */
 /* -------------------------------------------------------------------------- */
 
-async function Login(req: express.Request, res: express.Response) {
+async function Login(
+  req: express.Request<ParamsDictionary, any, any, { redirectUrl: string }>,
+  res: express.Response<StandardResponse<IUser>>
+) {
   try {
-    const { redirectUrl } = req.query;
+    const { redirectUrl } = req.query as { redirectUrl: string };
 
     const { email, password } = <{ email: string; password: string }>req.body;
 
-    const user = await User.findOne({ email }).populate('profile');
+    const user = await User.findOne({
+      emails: { $elemMatch: { email, type: 'primary' } },
+    }).populate('profile');
 
-    if (!user) return res.status(404).send(responseErrors([{ message: 'User does not exist' }]));
+    if (!user) return res.status(404).send({ message: 'User not found', success: false });
 
     if (!(await bcrypt.compare(password, user.password)))
-      return res.status(400).send(responseErrors([{ message: 'Invalid login details' }]));
+      return res.status(400).send({ message: 'Invalid login details', success: false });
 
-    // generate access and refresh token
-    const { accessToken, refreshToken } = await user.generateAccessToken();
+    const { accessToken, refreshToken } = await user.createAccessToken();
 
     return res
       .cookie('accessToken', accessToken, { httpOnly: true, expires: config.COOKIE_EXPIRATION })
       .cookie('refreshToken', refreshToken, { httpOnly: true, expires: config.COOKIE_EXPIRATION })
-      .send(redirectUrl ? { redirectUrl, user } : user);
+      .send({ data: user, message: 'User logged in.', redirectUrl, success: true });
   } catch (error) {
     console.error('LOGIN ERROR', error.message);
-    return res.status(500).send('Server error 🔴');
+
+    return res.status(500).send({ message: 'Server error', success: false });
   }
 }
 
@@ -50,19 +51,23 @@ async function Login(req: express.Request, res: express.Response) {
 /*                                 Logout User                                */
 /* -------------------------------------------------------------------------- */
 
-async function Logout(req: express.Request, res: express.Response) {
-  const { redirectUrl } = req.query;
-
+async function Logout(
+  req: express.Request<ParamsDictionary, any, any, { redirectUrl: string }>,
+  res: express.Response<StandardResponse>
+) {
   try {
+    const { redirectUrl } = req.query;
+
     await Token.findOneAndDelete({ token: req.cookies['refreshToken'], type: 'refresh_token' });
 
-    // TODO: think of better standard response.
-    return redirectUrl
-      ? res.clearCookie('accessToken').clearCookie('refreshToken').send({ redirectUrl })
-      : res.clearCookie('accessToken').clearCookie('refreshToken').send('Logout success!');
+    return res
+      .clearCookie('accessToken')
+      .clearCookie('refreshToken')
+      .send({ message: 'User logged out.', success: true, redirectUrl });
   } catch (error) {
     console.error(error.message);
-    return res.status(500).send('Server error 🔴');
+
+    return res.status(500).send({ message: 'Server error.', success: false });
   }
 }
 
@@ -143,7 +148,7 @@ export const AuthLinkedIn = async (req: express.Request, res: express.Response) 
       //     .identifiers[0].identifier,
       // });
 
-      const [accessToken, refreshToken] = await generateUserAccessTokens(user.id);
+      const [accessToken, refreshToken] = await generateAccessToken(user.id);
 
       setResponseCookies(
         {
@@ -173,7 +178,7 @@ export const AuthLinkedIn = async (req: express.Request, res: express.Response) 
 
       if (!user) throw { message: 'User not found' };
 
-      const [accessToken, refreshToken] = await generateUserAccessTokens(user.id);
+      const [accessToken, refreshToken] = await generateAccessToken(user.id);
 
       setResponseCookies(
         {

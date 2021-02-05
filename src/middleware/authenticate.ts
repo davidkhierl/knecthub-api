@@ -1,7 +1,7 @@
 import { User } from '../models';
 import config from '../config';
 import express from 'express';
-import { generateUserAccessTokens } from '../utils/token.utils';
+import { generateAccessToken } from '../utils/token.utils';
 import jwt from 'jsonwebtoken';
 import { pick } from 'lodash';
 
@@ -60,12 +60,13 @@ async function authenticate(
     if (!user) return res.status(401).send('Unauthorized: Invalid user.');
 
     req.user = pick(user.toObject({ getters: true }), [
-      'email',
+      'emails',
       'firstName',
       'id',
       'isAdmin',
       'isVerified',
       'lastName',
+      'profile',
     ]);
 
     next();
@@ -78,7 +79,7 @@ async function authenticate(
       if (typeof decodedAccessToken !== 'object')
         return res.status(401).send('Unauthorized: Invalid jwt payload');
 
-      const [newAccessToken, newRefreshToken] = await generateUserAccessTokens(
+      const [newAccessToken, newRefreshToken] = await generateAccessToken(
         decodedAccessToken.sub,
         refreshToken
       );
@@ -87,12 +88,13 @@ async function authenticate(
 
       if (user)
         req.user = pick(user.toObject({ getters: true }), [
-          'email',
+          'emails',
           'firstName',
           'id',
           'isAdmin',
           'isVerified',
           'lastName',
+          'profile',
         ]);
 
       res

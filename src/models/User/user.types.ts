@@ -1,34 +1,40 @@
 import { Document, Model } from 'mongoose';
 
-export interface User {
+import { IProfile } from '../Profile/profile.types';
+import { IToken } from '../Token/token.types';
+
+export interface IUserEmails {
   email: string;
+  type: 'primary' | 'secondary' | 'pendingPrimary';
+  confirmed?: boolean;
+  isVisible?: boolean;
+}
+
+export interface IUser {
+  emails: IUserEmails[];
   firstName: string;
   isAdmin?: boolean;
   isVerified?: boolean;
   lastName: string;
   linkedInId?: string;
   password: string;
-  profile?: {
-    bio?: string;
-    company?: string;
-    contactNumber?: string;
-    coverPhoto?: string;
-    jobTitle?: string;
-    location?: string;
-    profilePicture?: string;
-  };
+  profile?: IProfile;
 }
 
 export interface UserMethod {
-  generateEmailVerificationToken: (expiresIn?: Date) => Promise<string>;
-  generatePasswordResetToken: () => Promise<string>;
-  generateAccessToken: () => Promise<{ accessToken: string; refreshToken: string }>;
+  createAccessToken: () => Promise<{ accessToken: string; refreshToken: string }>;
+  createEmailVerificationToken: (expiresIn?: Date) => Promise<string>;
+  createPasswordResetToken: () => Promise<string>;
+  createToken: (type: IToken['type'], expiresIn?: Date) => Promise<string>;
 }
 
+export interface UserStatics extends Model<UserDocument> {
+  findByPrimaryEmail: (email: string) => Promise<UserDocument>;
+}
 export interface UserVirtual {
   fullName?: string;
 }
 
-export type UserDocument = User & UserVirtual & UserMethod & Document;
+export interface UserDocument extends IUser, UserVirtual, UserMethod, Document {}
 
 export type UserModel = Model<UserDocument>;
