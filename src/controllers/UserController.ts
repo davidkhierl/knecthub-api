@@ -54,6 +54,41 @@ async function GetUser(req: express.Request, res: express.Response<StandardRespo
 }
 
 /* -------------------------------------------------------------------------- */
+/*                          Get User By Primary Email                         */
+/* -------------------------------------------------------------------------- */
+
+async function GetUserByPrimaryEmail(
+  req: express.Request<ParamsDictionary, any, any, { email: string }>,
+  res: express.Response<StandardResponse<IUser>>
+) {
+  try {
+    const { email } = req.query;
+
+    const user = await await User.findByPrimaryEmail(email);
+
+    if (!user)
+      return res.status(400).send({
+        message: 'User not found.',
+        success: false,
+        errors: [
+          {
+            location: 'query',
+            message: 'User with this email does not exist.',
+            param: 'email',
+            value: email,
+          },
+        ],
+      });
+
+    return res.send({ data: user, message: 'User found.', success: true });
+  } catch (error) {
+    console.error(error.message);
+
+    return res.status(500).send({ message: 'Server error.', success: false });
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 /*                                Register User                               */
 /* -------------------------------------------------------------------------- */
 async function RegisterUser(
@@ -230,4 +265,12 @@ async function GetCurrentUser(
     return res.status(500).send({ message: 'Server error.', success: false });
   }
 }
-export default { GetUsers, GetUser, RegisterUser, UpdateUser, DeleteUser, GetCurrentUser };
+export default {
+  GetUsers,
+  GetUser,
+  RegisterUser,
+  UpdateUser,
+  DeleteUser,
+  GetCurrentUser,
+  GetUserByPrimaryEmail,
+};

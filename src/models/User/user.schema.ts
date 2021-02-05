@@ -7,6 +7,7 @@ import {
 
 import Token from '../Token';
 import { UserDocument } from './user.types';
+import { findByPrimaryEmail } from './user.statics';
 import mongoose from 'mongoose';
 
 const UserSchema = new mongoose.Schema<UserDocument>({
@@ -26,7 +27,6 @@ const UserSchema = new mongoose.Schema<UserDocument>({
         type: String,
         trim: true,
         required: true,
-        index: true,
       },
       type: {
         type: String,
@@ -75,6 +75,9 @@ UserSchema.methods.createAccessToken = createAccessToken;
 UserSchema.methods.createEmailVerificationToken = createEmailVerificationToken;
 UserSchema.methods.createPasswordResetToken = createPasswordResetToken;
 UserSchema.methods.createToken = createToken;
+
+// static
+UserSchema.statics.findByPrimaryEmail = findByPrimaryEmail;
 
 // Post delete hooks
 UserSchema.post('findOneAndDelete', async function (user: UserDocument) {

@@ -28,6 +28,9 @@ export interface UserMethod {
   createToken: (type: IToken['type'], expiresIn?: Date) => Promise<string>;
 }
 
+export interface UserStatics extends Model<UserDocument> {
+  findByPrimaryEmail: (email: string) => Promise<UserDocument>;
+}
 export interface UserVirtual {
   fullName?: string;
 }

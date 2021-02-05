@@ -1,4 +1,4 @@
-import { body, param } from 'express-validator';
+import { body, param, query } from 'express-validator';
 
 import UserController from '../controllers/UserController';
 import authenticate from '../middleware/authenticate';
@@ -49,6 +49,16 @@ router.post(
  * GET:PRIVATE {apiPrefix}/users/me
  */
 router.get('/me', authenticate, UserController.GetCurrentUser);
+
+/**
+ * GET:PRIVATE {apiPrefix}/users/search?email=
+ */
+router.get(
+  '/search',
+  authenticate,
+  [query('email').exists({ checkFalsy: true }), checkValidationResult],
+  UserController.GetUserByPrimaryEmail
+);
 
 /**
  * PATCH:PRIVATE {apiPrefix}/users/me
