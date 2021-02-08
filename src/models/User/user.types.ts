@@ -3,7 +3,7 @@ import { Document, Model } from 'mongoose';
 import { IProfile } from '../Profile/profile.types';
 import { IToken } from '../Token/token.types';
 
-export interface IUserEmails {
+export interface IUserEmail {
   email: string;
   type: 'primary' | 'secondary' | 'pendingPrimary';
   confirmed?: boolean;
@@ -11,7 +11,7 @@ export interface IUserEmails {
 }
 
 export interface IUser {
-  emails: IUserEmails[];
+  emails: IUserEmail[];
   firstName: string;
   isAdmin?: boolean;
   isVerified?: boolean;
@@ -21,20 +21,32 @@ export interface IUser {
   profile?: IProfile;
 }
 
-export interface UserMethod {
+export interface UserDocument extends IUser, Document {
+  /**
+   * Create access token.
+   */
   createAccessToken: () => Promise<{ accessToken: string; refreshToken: string }>;
+  /**
+   * Create email verification token.
+   */
   createEmailVerificationToken: (expiresIn?: Date) => Promise<string>;
+  /**
+   * Create password reset token.
+   */
   createPasswordResetToken: () => Promise<string>;
+  /**
+   * Create token.
+   */
   createToken: (type: IToken['type'], expiresIn?: Date) => Promise<string>;
-}
-
-export interface UserStatics extends Model<UserDocument> {
-  findByPrimaryEmail: (email: string) => Promise<UserDocument>;
-}
-export interface UserVirtual {
+  /**
+   * User full name.
+   */
   fullName?: string;
 }
 
-export interface UserDocument extends IUser, UserVirtual, UserMethod, Document {}
-
-export type UserModel = Model<UserDocument>;
+export interface UserModel extends Model<UserDocument> {
+  /**
+   * Find user by primary email.0
+   */
+  findByPrimaryEmail: (email: string) => Promise<UserDocument>;
+}

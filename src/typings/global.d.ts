@@ -1,14 +1,9 @@
-import { IUser } from '../models/User/user.types';
+import { IUser, UserDocument } from '../models/User/user.types';
 
 declare global {
   namespace Express {
     interface Request {
-      user: Pick<
-        IUser,
-        'firstName' | 'lastName' | 'isVerified' | 'emails' | 'isAdmin' | 'profile'
-      > & {
-        id?: string;
-      };
+      user: UserDocument;
       auth?: {
         continueOnFail?: boolean;
       };

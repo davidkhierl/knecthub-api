@@ -1,24 +1,27 @@
-import {
-  ConnectionApprove,
-  ConnectionList,
-  ConnectionRemove,
-  ConnectionRequest,
-} from '../controllers/ConnectionController';
-
+import ConnectionController from '../controllers/ConnectionController';
 import authenticate from '../middleware/authenticate';
+import checkValidationResult from '../middleware/checkValidationResult';
 import express from 'express';
+import { query } from 'express-validator';
 
 const router = express.Router();
 
-// @route   POST api/connection/request
-// @desc    Send connection request
-// @access  Private
-router.get('', authenticate, ConnectionList);
+router.get('/', authenticate, ConnectionController.GetUserConnections);
 
-router.post('/request', authenticate, ConnectionRequest);
+router.post(
+  '/request',
+  authenticate,
+  [query('email', 'Email is missing.').exists({ checkFalsy: true }), checkValidationResult],
+  ConnectionController.RequestConnection
+);
 
-router.put('/approve', authenticate, ConnectionApprove);
+router.post(
+  '/accept',
+  authenticate,
+  [query('email', 'Email is missing.').exists({ checkFalsy: true }), checkValidationResult],
+  ConnectionController.AcceptConnection
+);
 
-router.delete('', authenticate, ConnectionRemove);
+router.delete('/', authenticate);
 
 export default router;

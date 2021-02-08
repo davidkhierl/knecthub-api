@@ -1,216 +1,129 @@
-import Connection from '../models/Connection';
-import { NotificationSend } from '../controllers/NotificationController';
-import { User } from '../models';
-import express from 'express';
+import { Connection, User } from '../models';
+import { ParamsDictionary, StandardResponse } from '../typings/express';
+import { Request, Response } from 'express';
 
-//  Friends & Contacts List
-export const ConnectionList = async (req: express.Request, res: express.Response) => {
-  const connectionList = await Connection.find({
-    userId: req.user.id,
-  })
-    .populate('friends.user')
-    .populate('friends.profile');
-  return res.send(connectionList);
-};
+import { find } from 'lodash';
 
-export const ConnectionRemove = async (_req: express.Request, res: express.Response) => {
-  return res.send('asd');
-};
-
-//  Friend Request
-export const ConnectionRequest = async (req: express.Request, res: express.Response) => {
+async function GetUserConnections(req: Request, res: Response<StandardResponse>) {
   try {
-    const validate = await Connection.find({ userId: req.user.id });
-    const user = await User.findById(req.body.userId);
-    const currentUser = await User.findById(req.user.id);
+    const connections = await Connection.find({
+      $or: [{ sender: req.user }, { receiver: req.user }],
+    })
+      .populate({
+        path: 'sender',
+        match: { _id: { $ne: req.user._id } },
+        populate: { path: 'profile' },
+      })
+      .populate({
+        path: 'receiver ',
+        match: { _id: { $ne: req.user._id } },
+        populate: { path: 'profile' },
+      })
+      .exec();
 
-    //  Validate if requestor has record in connection collection
-    if (validate.length > 0) {
-      if (!user) return res.status(400).json([{ message: 'User not found' }]);
-      const connectionExists = await Connection.find({
-        'friends.toUserId': req.body.userId,
-      });
+    if (!connections)
+      return res.status(400).send({ message: 'No connections found.', success: false });
 
-      //  Validate if Receiver's User id is already exists in Requestor friend list
-      if (connectionExists.length > 0) {
-        return res.json({
-          success: false,
-          message: 'You already sent a friend request!',
-        });
-      }
+    // const populatedConnections = await Connection.populate(connections, {retain});
 
-      const obj1 = { name: user.firstName + ' ' + user.lastName };
-      const obj2 = { toUserId: user.id };
-      const obj3 = { status: true };
-
-      const merged_object = JSON.parse(
-        (JSON.stringify(obj1) + JSON.stringify(obj2) + JSON.stringify(obj3)).replace(/}{/g, ',')
-      );
-
-      //  Update collection Notification -> friends details
-      await Connection.findOneAndUpdate(
-        { userId: req.user.id },
-        { $push: { friends: merged_object } }
-      );
-
-      if (!currentUser) return res.status(400).json([{ message: 'User not found' }]);
-      //  Create params for notification
-      req.body.senderUserId = req.user.id;
-      req.body.module = 'Connection';
-      req.body.action = 'Friend Request';
-
-      req.body.description =
-        currentUser.firstName + ' ' + currentUser.lastName + ' sent you a friend request.';
-
-      //  Create Notification
-      SendNotification(req, res);
-
-      return res.json({ success: true, message: 'Friend request sent!' });
-    } else {
-      if (!user) return res.status(400).json([{ message: 'User not found' }]);
-
-      const obj1 = { name: user.firstName + ' ' + user.lastName };
-      const obj2 = { toUserId: user.id };
-      const obj3 = { sentByMe: true };
-
-      const merged_object = JSON.parse(
-        (JSON.stringify(obj1) + JSON.stringify(obj2) + JSON.stringify(obj3)).replace(/}{/g, ',')
-      );
-
-      //  Create record in connection collection for requestor
-      Connection.create({
-        userId: req.user.id,
-        friends: merged_object,
-      });
-
-      //  If receiver don't have any record in connection collection => Create record
-      //  If receiver has record in connection collection => Update Notification -> friend list
-      ConnectionPopulate(req, res);
-
-      if (!currentUser) return res.status(400).json([{ message: 'User not found' }]);
-      //  Create params for notification
-      req.body.senderUserId = req.user.id;
-      req.body.module = 'Connection';
-      req.body.action = 'Friend Request';
-
-      req.body.description =
-        currentUser.firstName + ' ' + currentUser.lastName + ' sent you a friend request.';
-
-      //  Create Notification
-      SendNotification(req, res);
-
-      return res.json({ success: true, message: 'Friend request sent!' });
-    }
+    return res.send({ data: connections, message: 'User connections.', success: true });
   } catch (error) {
-    // console.error(error.message);
-    return res.status(500).send('Server Error');
+    console.error(error.message);
+
+    return res.status(500).send({ message: 'Server error.', success: false });
   }
-};
+}
 
-//  Approve Friend Request
-export const ConnectionApprove = async (req: express.Request, res: express.Response) => {
-  const user = await User.findById(req.user.id);
-  if (!user) return res.status(400).json([{ message: 'User not found' }]);
-  const validate = await Connection.findOne({ userId: req.user.id });
+async function RequestConnection(
+  req: Request<ParamsDictionary, any, any, { email: string }>,
+  res: Response<StandardResponse>
+) {
+  try {
+    const { email } = req.query;
 
-  //  Validate if current user has record
-  if (validate != null) {
-    const isFriendRequestorExists = await Connection.findOne({
-      'friends.toUserId': req.body.userId,
-      'friends.status': false,
-      'friends.sentByMe': false,
+    if (email === find(req.user.emails, { email })?.email)
+      return res
+        .status(400)
+        .send({ message: 'You cannot send a request to your own account.', success: false });
+
+    const receiver = await User.findByPrimaryEmail(email);
+
+    const connection = await Connection.findOne({
+      $or: [
+        { sender: req.user.id, receiver },
+        { sender: receiver, receiver: req.user.id },
+      ],
     });
 
-    if (isFriendRequestorExists != null) {
-      Connection.findOneAndUpdate(
-        {
-          _id: validate.id,
-          'friends.toUserId': '' + req.body.userId + '',
-        },
-        {
-          $set: {
-            'friends.$.status': true,
-          },
-        }
-        // function (error: any, success: any) {
-        //   if (error) console.error(error);
-        //   else console.log(success);
-        // }
-      );
-      const userRequester = await Connection.findOne({
-        userId: req.body.userId,
-      });
-      if (!userRequester) return res.status(400).json([{ message: 'User not found' }]);
-      Connection.findOneAndUpdate(
-        {
-          _id: userRequester.id,
-          'friends.toUserId': '' + req.user.id + '',
-        },
-        {
-          $set: {
-            'friends.$.status': true,
-          },
-        }
-        // function (error: any, success: any) {
-        //   if (error) console.error(error);
-        //   else console.log(success);
-        // }
-      );
+    if (connection) {
+      if (connection.status === 'pending')
+        return res.status(400).send({ message: 'Already have a pending request', success: false });
 
-      //  Create params for notification
-      req.body.senderUserId = req.user.id;
-      req.body.module = 'Connection';
-      req.body.action = 'Friend Request Approved';
-
-      req.body.description =
-        'You and ' + user.firstName + ' ' + user.lastName + ' are now connected!';
-
-      //  Create Notification
-      SendNotification(req, res);
-
-      return res.json({
-        success: true,
-        message: 'Friend request approved!',
-      });
-    } else {
-      return res.json({ success: true, message: 'No User found' });
+      if (connection.status === 'accepted')
+        return res
+          .status(400)
+          .send({ message: 'User already on your connections', success: false });
     }
-  } else {
-    return res.json({
-      success: true,
-      message: 'User does not have any record',
-    });
-  }
-  // return res.json(user);
-};
 
-//  If receiver don't have any record in connection collection => Create record
-//  If receiver has record in connection collection => Update Notification -> friend list
-const ConnectionPopulate = async (req: express.Request, _res: express.Response) => {
-  const obj1 = { name: req.user.firstName + ' ' + req.user.lastName };
-  const obj2 = { toUserId: req.user.id };
-  const obj3 = { sentByMe: false };
-  const merged_object = JSON.parse(
-    (JSON.stringify(obj1) + JSON.stringify(obj2) + JSON.stringify(obj3)).replace(/}{/g, ',')
-  );
+    Connection.create(
+      {
+        sender: req.user.id,
+        status: 'pending',
+        receiver: receiver,
+      },
+      (error) => {
+        if (error) throw new Error();
 
-  const validate = await Connection.find({ userId: req.body.userId });
-  if (validate.length > 0) {
-    //  Update receiver's notification -> friend list record
-    await Connection.findOneAndUpdate(
-      { userId: req.body.userId },
-      { $push: { friends: merged_object } }
+        return res.send({ message: 'Request sent.', success: true });
+      }
     );
-  } else {
-    //  Create records for receiver
-    await Connection.create({
-      userId: req.body.userId,
-      friends: merged_object,
-    });
+    return;
+  } catch (error) {
+    console.error(error.message);
+    return res.status(500).send({ message: 'Server error.', success: false });
   }
-};
+}
 
-//  SEND NOTIFICATION TO USER RECEIVER
-const SendNotification = async (req: express.Request, res: express.Response) => {
-  NotificationSend(req, res);
-};
+async function AcceptConnection(
+  req: Request<ParamsDictionary, any, any, { email: string }>,
+  res: Response<StandardResponse>
+) {
+  try {
+    const { email } = req.query;
+
+    if (email === find(req.user.emails, { email })?.email)
+      return res.status(400).send({ message: 'Invalid connection.', success: false });
+
+    const sender = await User.findByPrimaryEmail(email);
+
+    const connection = await Connection.findOne({
+      $or: [
+        { sender: req.user.id, receiver: sender },
+        { sender: sender, receiver: req.user.id },
+      ],
+    });
+
+    if (!connection)
+      return res.status(400).send({ message: 'Connection request not found.', success: false });
+
+    if (connection.status === 'accepted')
+      return res.status(400).send({ message: 'Already accepted.', success: false });
+
+    if (connection.status === 'ignored')
+      return res.status(400).send({
+        message: 'This connection has been ignored, user needs to send a new connection request',
+        success: false,
+      });
+
+    connection.status = 'accepted';
+
+    await connection.save();
+
+    return res.send({ message: 'Connection accepted.', success: true });
+  } catch (error) {
+    console.error(error.message);
+    return res.status(500).send({ message: 'Server error.', success: false });
+  }
+}
+
+export default { RequestConnection, AcceptConnection, GetUserConnections };

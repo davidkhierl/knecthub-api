@@ -1,4 +1,4 @@
-import { IUser, IUserEmails } from '../models/User/user.types';
+import { IUser, IUserEmail } from '../models/User/user.types';
 import { ParamsDictionary, StandardResponse } from '../typings/express';
 import { TokenHash, decryptToken, encryptToken } from '../utils/token.utils';
 import { find, matches } from 'lodash';
@@ -22,7 +22,7 @@ async function VerifyEmail(
     const { hash, email, type } = jwt.verify(token, config.JWT_EMAIL_VERIFICATION_SECRET) as {
       hash: TokenHash;
       email: string;
-      type: IUserEmails['type'];
+      type: IUserEmail['type'];
     };
 
     const emailVerificationToken = decryptToken(hash);

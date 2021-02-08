@@ -3,7 +3,6 @@ import config from '../config';
 import express from 'express';
 import { generateAccessToken } from '../utils/token.utils';
 import jwt from 'jsonwebtoken';
-import { pick } from 'lodash';
 
 interface DecodedAccessToken {
   sub: string;
@@ -59,15 +58,7 @@ async function authenticate(
 
     if (!user) return res.status(401).send('Unauthorized: Invalid user.');
 
-    req.user = pick(user.toObject({ getters: true }), [
-      'emails',
-      'firstName',
-      'id',
-      'isAdmin',
-      'isVerified',
-      'lastName',
-      'profile',
-    ]);
+    req.user = user;
 
     next();
   } catch (error) {
@@ -86,16 +77,7 @@ async function authenticate(
 
       const user = await User.findById(decodedAccessToken.sub);
 
-      if (user)
-        req.user = pick(user.toObject({ getters: true }), [
-          'emails',
-          'firstName',
-          'id',
-          'isAdmin',
-          'isVerified',
-          'lastName',
-          'profile',
-        ]);
+      if (user) req.user = user;
 
       res
         .cookie('accessToken', newAccessToken, {

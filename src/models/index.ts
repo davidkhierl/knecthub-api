@@ -1,5 +1,7 @@
-import { UserDocument, UserStatics } from './User/user.types';
+import { ConnectionDocument, ConnectionModel } from './Connection/connections.types';
+import { UserDocument, UserModel } from './User/user.types';
 
+import ConnectionSchema from './Connection/connection.schema';
 import { ProfileDocument } from './Profile/profile.types';
 import ProfileSchema from './Profile/profile.schema';
 import UserSchema from './User/user.schema';
@@ -19,5 +21,9 @@ mongoose.plugin(normalizeToJson);
 /*                                   Models                                   */
 /* -------------------------------------------------------------------------- */
 
+export const Connection = model<ConnectionDocument, ConnectionModel>(
+  'Connection',
+  ConnectionSchema
+);
 export const Profile = model<ProfileDocument>('Profile', ProfileSchema);
-export const User = model<UserDocument, UserStatics>('User', UserSchema);
+export const User = model<UserDocument, UserModel>('User', UserSchema);

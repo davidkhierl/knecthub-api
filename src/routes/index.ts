@@ -1,4 +1,5 @@
 import authRoutes from './auth';
+import connectionRoutes from './connection';
 import emailRoutes from './email';
 import express from 'express';
 import passwordRoutes from './password';
@@ -12,6 +13,7 @@ routes.all('/', (req, res) =>
 );
 
 routes.use('/auth', authRoutes);
+routes.use('/connections', connectionRoutes);
 routes.use('/email', emailRoutes);
 routes.use('/password', passwordRoutes);
 routes.use('/profiles', profileRoutes);
