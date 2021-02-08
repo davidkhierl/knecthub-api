@@ -5,12 +5,12 @@ import {
   createToken,
 } from './user.method';
 
+import { Schema } from 'mongoose';
 import Token from '../Token';
 import { UserDocument } from './user.types';
 import { findByPrimaryEmail } from './user.statics';
-import mongoose from 'mongoose';
 
-const UserSchema = new mongoose.Schema<UserDocument>({
+const UserSchema = new Schema<UserDocument>({
   firstName: {
     type: String,
     trim: true,
@@ -59,7 +59,7 @@ const UserSchema = new mongoose.Schema<UserDocument>({
     type: String,
   },
   profile: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: 'Profile',
     required: true,
   },
@@ -76,7 +76,7 @@ UserSchema.methods.createEmailVerificationToken = createEmailVerificationToken;
 UserSchema.methods.createPasswordResetToken = createPasswordResetToken;
 UserSchema.methods.createToken = createToken;
 
-// static
+// statics
 UserSchema.statics.findByPrimaryEmail = findByPrimaryEmail;
 
 // Post delete hooks
