@@ -33,7 +33,7 @@ async function VerifyEmail(
     });
 
     // Verify token
-    if (!tokenQuery || tokenQuery.consumed)
+    if (!tokenQuery || (tokenQuery && tokenQuery.consumed))
       return res.status(400).json({ message: 'Invalid Token', success: false });
 
     // check if token expired

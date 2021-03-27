@@ -14,6 +14,9 @@ export interface IToken {
 
 interface TokenMethod {}
 
-export interface TokenDocument extends IToken, TokenMethod, Document {}
+export interface TokenDocument extends IToken, TokenMethod, Document {
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 export type TokenModel = Model<TokenDocument>;

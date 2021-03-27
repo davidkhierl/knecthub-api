@@ -42,11 +42,34 @@ async function RequestConnection(
     const { email } = req.query;
 
     if (email === find(req.user.emails, { email })?.email)
-      return res
-        .status(400)
-        .send({ message: 'You cannot send a request to your own account.', success: false });
+      return res.status(400).send({
+        errors: [
+          {
+            location: 'query',
+            message: 'You cannot send a request to your own account.',
+            param: 'email',
+            value: email,
+          },
+        ],
+        message: 'Connection request failed.',
+        success: false,
+      });
 
     const receiver = await User.findByPrimaryEmail(email);
+
+    if (!receiver)
+      return res.status(400).send({
+        errors: [
+          {
+            location: 'query',
+            message: `User with email ${email} doesn't exist`,
+            param: 'email',
+            value: email,
+          },
+        ],
+        message: 'Connection request failed.',
+        success: false,
+      });
 
     const connection = await Connection.findOne({
       $or: [
@@ -57,7 +80,18 @@ async function RequestConnection(
 
     if (connection) {
       if (connection.status === 'pending')
-        return res.status(400).send({ message: 'Already have a pending request', success: false });
+        return res.status(400).send({
+          errors: [
+            {
+              location: 'query',
+              message: 'Already have a pending request.',
+              param: 'email',
+              value: email,
+            },
+          ],
+          message: 'Connection request failed.',
+          success: false,
+        });
 
       if (connection.status === 'accepted')
         return res

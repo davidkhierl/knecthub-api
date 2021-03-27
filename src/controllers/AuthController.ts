@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import CryptoJS from 'crypto-js';
 import express from 'express';
 import * as queryString from 'query-string';
-
+import jwt from 'jsonwebtoken';
 import config from '../config';
 import { setResponseCookies } from '../helpers/response.helpers';
 import { generateAccessToken } from '../utils/token.utils';
@@ -58,7 +58,14 @@ async function Logout(
   try {
     const { redirectUrl } = req.query;
 
-    await Token.findOneAndDelete({ token: req.cookies['refreshToken'], type: 'refresh_token' });
+    const { token } = jwt.verify(req.cookies['refreshToken'], config.JWT_SECRET, {
+      ignoreExpiration: true,
+    }) as {
+      tokenId: string;
+      token: string;
+    };
+
+    await Token.findOneAndDelete({ token, type: 'refresh_token' });
 
     return res
       .clearCookie('accessToken')
