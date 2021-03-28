@@ -1,5 +1,6 @@
 import { ParamsDictionary, StandardResponse } from '../typings/express';
 import { Profile, User } from '../models';
+import { pick, startCase } from 'lodash';
 
 import { IUser } from '../models/User/user.types';
 import bcrypt from 'bcryptjs';
@@ -9,7 +10,6 @@ import { encryptToken } from '../utils/token.utils';
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import mail from '../services/mail';
-import { pick } from 'lodash';
 import randomColor from 'randomcolor';
 import { resourceLocation } from '../helpers/response.helpers';
 
@@ -123,8 +123,8 @@ async function RegisterUser(
 
     // proceed creating user
     const user = await User.create({
-      firstName,
-      lastName,
+      firstName: startCase(firstName),
+      lastName: startCase(lastName),
       emails: { email, type: 'primary', isVisible: true },
       password: await bcrypt.hash(password, await bcrypt.genSalt(10)),
       profile,
@@ -148,13 +148,21 @@ async function RegisterUser(
     );
 
     // Send email verification to email
-    // TODO: Create email template in SendGrid.
-    await mail.send({
-      to: email,
-      from: config.SUPPORT_MAIL,
-      subject: 'Email Verification',
-      text: `Please visit this link to verify your email ${emailVerificationLink}`,
-    });
+    await mail.send(
+      {
+        to: email,
+        from: config.SUPPORT_MAIL,
+        templateId: 'd-e1974dd64a9e472dbbabc8b05c7fe167',
+        dynamicTemplateData: {
+          firstName: startCase(firstName),
+          emailVerificationLink,
+        },
+      },
+      false,
+      (error: any, _result) => {
+        if (error) console.error(error.response.body.errors);
+      }
+    );
 
     // generate access and refresh token
     const { accessToken, refreshToken } = await user.createAccessToken();
