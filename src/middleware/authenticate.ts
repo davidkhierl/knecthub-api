@@ -88,6 +88,7 @@ async function authenticate(
 
       if (!refreshTokenQuery) return res.status(401).send('Unauthorized: Refresh token');
 
+      // TODO: This is temporary fix, handle multiple refresh token request in axios.
       if (moment().diff(refreshTokenQuery.updatedAt) <= 30000) return next();
 
       const [newAccessToken, newRefreshToken] = await generateAccessToken(
