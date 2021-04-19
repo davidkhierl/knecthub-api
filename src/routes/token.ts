@@ -3,6 +3,7 @@ import express from 'express';
 
 const router = express.Router();
 
+// TODO: Make refresh token route
 // @route   GET $prefix/token/refresh
 // @desc    Refresh access token
 // @access  Public

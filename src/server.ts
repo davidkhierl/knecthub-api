@@ -3,9 +3,10 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import database from './services/database';
 import express from 'express';
-import helmet from 'helmet';
 import http from 'http';
 import routes from './routes';
+
+import helmet from 'helmet';
 
 // Initialize database connection first
 // and invoke the serverInit if connection

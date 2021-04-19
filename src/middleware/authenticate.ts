@@ -29,6 +29,7 @@ export const authContinueOnFail = (
   next();
 };
 
+// TODO: Remove auto token refresh.
 /**
  * Authentication middleware.
  * @param req Express request
