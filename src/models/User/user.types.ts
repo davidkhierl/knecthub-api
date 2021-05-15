@@ -1,24 +1,37 @@
-import { Document, Model } from 'mongoose';
+import { Document, Model, QueryOptions, UpdateQuery } from 'mongoose';
 
 import { IProfile } from '../Profile/profile.types';
 import { IToken } from '../Token/token.types';
 
-export interface IUserEmail {
-  email: string;
-  type: 'primary' | 'secondary' | 'pendingPrimary';
-  confirmed?: boolean;
-  isVisible?: boolean;
-}
-
 export interface IUser {
-  emails: IUserEmail[];
+  /**
+   * User email.
+   */
+  email: string;
+  /**
+   * User email status.
+   */
+  emailVerified?: boolean;
+  /**
+   * User first name.
+   */
   firstName: string;
-  isAdmin?: boolean;
-  isVerified?: boolean;
-  lastName: string;
-  linkedInId?: string;
+  /**
+   * User last name.
+   */
+  lastName?: string;
+  /**
+   * User password.
+   */
   password: string;
+  /**
+   * User profile.
+   */
   profile?: IProfile;
+  /**
+   * Google Id
+   */
+  googleId?: string;
 }
 
 export interface UserDocument extends IUser, Document {
@@ -46,7 +59,15 @@ export interface UserDocument extends IUser, Document {
 
 export interface UserModel extends Model<UserDocument> {
   /**
-   * Find user by primary email.0
+   * Find user by email.
    */
-  findByPrimaryEmail: (email: string) => Promise<UserDocument>;
+  findByEmail: (email: string) => Promise<UserDocument | null>;
+  /**
+   * Find user by email.
+   */
+  findByEmailAndUpdate: (
+    email: string,
+    update?: UpdateQuery<UserDocument> | undefined,
+    options?: QueryOptions | null | undefined
+  ) => Promise<UserDocument | null>;
 }

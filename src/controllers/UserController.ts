@@ -1,4 +1,4 @@
-import { ParamsDictionary, StandardResponse } from '../typings/express';
+import { AuthSuccessResponse, ParamsDictionary, StandardResponse } from '../typings/express';
 import { Profile, User } from '../models';
 import { pick, startCase } from 'lodash';
 
@@ -54,9 +54,8 @@ async function GetUser(req: express.Request, res: express.Response<StandardRespo
 }
 
 /* -------------------------------------------------------------------------- */
-/*                          Get User By Primary Email                         */
+/*                              Get User By Email                             */
 /* -------------------------------------------------------------------------- */
-
 async function GetUserByPrimaryEmail(
   req: express.Request<ParamsDictionary, any, any, { email: string }>,
   res: express.Response<StandardResponse<IUser>>
@@ -64,7 +63,7 @@ async function GetUserByPrimaryEmail(
   try {
     const { email } = req.query;
 
-    const user = await await User.findByPrimaryEmail(email);
+    const user = await User.findByEmail(email);
 
     if (!user)
       return res.status(400).send({
@@ -88,22 +87,20 @@ async function GetUserByPrimaryEmail(
   }
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                Register User                               */
-/* -------------------------------------------------------------------------- */
+// Register user.
 async function RegisterUser(
   req: express.Request<
     ParamsDictionary,
     any,
-    { firstName: string; lastName: string; company?: string; email: string; password: string }
+    { firstName: string; lastName?: string; company?: string; email: string; password: string }
   >,
-  res: express.Response<StandardResponse<IUser>>
+  res: express.Response<StandardResponse<AuthSuccessResponse>>
 ) {
   try {
     const { firstName, lastName, company, email, password } = req.body;
 
     // check if email is already registered
-    const userQuery = await User.findOne({ 'emails.email': email });
+    const userQuery = await User.findOne({ email });
 
     // return if user with the same email is already in use.
     if (userQuery)
@@ -125,7 +122,7 @@ async function RegisterUser(
     const user = await User.create({
       firstName: startCase(firstName),
       lastName: startCase(lastName),
-      emails: { email, type: 'primary', isVisible: true },
+      email,
       password: await bcrypt.hash(password, await bcrypt.genSalt(10)),
       profile,
     });
@@ -136,13 +133,16 @@ async function RegisterUser(
     // generate email verification token
     const token = await user.createEmailVerificationToken(dayjs().add(72, 'hour').toDate());
 
+    // encrypt token
     const hash = encryptToken(token);
 
+    // sign jwt token
     const signedToken = jwt.sign(
-      { hash, email, type: 'primary' },
+      { sub: user.id, hash, email },
       config.JWT_EMAIL_VERIFICATION_SECRET
     );
 
+    // email verification link
     const emailVerificationLink = encodeURI(
       `${config.CLIENT_URL}/email/verify?token=${signedToken}`
     );
@@ -171,7 +171,11 @@ async function RegisterUser(
       .location(resourceLocation(req, user.id))
       .cookie('accessToken', accessToken, { httpOnly: true, expires: config.COOKIE_EXPIRATION })
       .cookie('refreshToken', refreshToken, { httpOnly: true, expires: config.COOKIE_EXPIRATION })
-      .send({ data: user, message: 'Register success', success: true });
+      .send({
+        data: { user, accessToken, refreshToken },
+        message: 'Register success',
+        success: true,
+      });
   } catch (error) {
     console.error(error.message);
 
@@ -192,7 +196,7 @@ async function UpdateUser(
     // from their own route: ProfileController, EmailController and
     // PasswordController.
     const user = await User.findByIdAndUpdate(
-      req.user.id,
+      req.user?.id,
       pick(req.body, ['firstName', 'lastName']),
       { new: true }
     ).populate('profile');
@@ -253,16 +257,13 @@ async function DeleteUser(req: express.Request, res: express.Response<StandardRe
   }
 }
 
-/* -------------------------------------------------------------------------- */
-/*                              Get Current User                              */
-/* -------------------------------------------------------------------------- */
-
+// Get current user
 async function GetCurrentUser(
   req: express.Request,
   res: express.Response<StandardResponse<IUser>>
 ) {
   try {
-    const user = await User.findById(req.user.id).populate('profile');
+    const user = await User.findById(req.user?.id).populate('profile');
 
     if (!user) res.status(400).send({ message: 'User not found.', success: false });
 

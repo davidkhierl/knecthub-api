@@ -12,10 +12,10 @@ export interface IToken {
   expiresIn?: Date;
 }
 
-interface TokenMethod {}
-
-export interface TokenDocument extends IToken, TokenMethod, Document {
+export interface TokenDocument extends IToken, Document {
+  consumeToken: () => Promise<TokenDocument>;
   createdAt: Date;
+  isTokenValid: () => boolean;
   updatedAt: Date;
 }
 

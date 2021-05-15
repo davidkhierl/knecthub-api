@@ -82,8 +82,8 @@ router.patch(
         return true;
       }),
     checkValidationResult,
-  ],
-  PasswordController.ChangePassword
+  ]
+  // PasswordController.ChangePassword
 );
 
 export default router;

@@ -1,10 +1,13 @@
-import moment from 'moment';
-import mongoose from 'mongoose';
+import { consumeToken, isTokenValid } from './token.method';
 
-const TokenSchema = new mongoose.Schema(
+import { Schema } from 'mongoose';
+import { TokenDocument } from './token.types';
+import moment from 'moment';
+
+const TokenSchema = new Schema<TokenDocument>(
   {
     user: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },
@@ -34,5 +37,9 @@ const TokenSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// methods
+TokenSchema.methods.isTokenValid = isTokenValid;
+TokenSchema.methods.consumeToken = consumeToken;
 
 export default TokenSchema;

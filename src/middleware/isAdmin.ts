@@ -6,8 +6,9 @@ import express from 'express';
  * @param res Express response
  * @param next Express next
  */
-function isAdmin(req: express.Request, res: express.Response, next: express.NextFunction) {
-  if (req.user.isAdmin) return next();
+function isAdmin(_req: express.Request, res: express.Response, _next: express.NextFunction) {
+  // TODO: Refactor
+  // if (req.user.isAdmin) return next();
 
   return res.status(401).send('Unauthorized!');
 }

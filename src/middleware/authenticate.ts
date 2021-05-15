@@ -19,13 +19,13 @@ interface DecodedAccessToken {
  * @param next Express next
  */
 export const authContinueOnFail = (
-  req: express.Request,
+  _req: express.Request,
   _res: express.Response,
   next: express.NextFunction
 ) => {
-  req.auth = {
-    continueOnFail: true,
-  };
+  // req.auth = {
+  //   continueOnFail: true,
+  // };
   next();
 };
 
@@ -43,13 +43,13 @@ async function authenticate(
 ) {
   const { accessToken, refreshToken }: { accessToken: string; refreshToken: string } = req.cookies;
 
-  if (!accessToken || !refreshToken) {
-    if (req.auth && req.auth.continueOnFail) {
-      return next();
-    } else {
-      return res.status(401).send('Unauthorized: Missing token.');
-    }
-  }
+  // if (!accessToken || !refreshToken) {
+  //   if (req.auth && req.auth.continueOnFail) {
+  //     return next();
+  //   } else {
+  //     return res.status(401).send('Unauthorized: Missing token.');
+  //   }
+  // }
 
   try {
     const decodedAccessToken = jwt.verify(accessToken, config.JWT_SECRET) as DecodedAccessToken;
