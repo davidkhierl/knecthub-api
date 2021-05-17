@@ -51,7 +51,7 @@ phases:
 #file-format: JunitXml | CucumberJson
 artifacts:
   files:
-    - node_modules/**/*
+    # - node_modules/**/*
     - build/**/*
     - package.json
   #name: $(date +%Y-%m-%d)
@@ -59,4 +59,4 @@ artifacts:
 #   base-directory: build
 cache:
   paths:
-    - node_modules/**/*
+    # - node_modules/**/*
