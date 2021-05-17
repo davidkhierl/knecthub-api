@@ -4,11 +4,11 @@ import {
   createPasswordResetToken,
   createToken,
 } from './user.method';
+import { findByEmail, findByEmailAndUpdate } from './user.statics';
 
 import { Schema } from 'mongoose';
 import Token from '../Token';
 import { UserDocument } from './user.types';
-import { findByPrimaryEmail } from './user.statics';
 
 const UserSchema = new Schema<UserDocument>({
   firstName: {
@@ -19,49 +19,27 @@ const UserSchema = new Schema<UserDocument>({
   lastName: {
     type: String,
     trim: true,
-    required: true,
   },
-  emails: [
-    {
-      email: {
-        type: String,
-        trim: true,
-        required: true,
-      },
-      type: {
-        type: String,
-        trim: true,
-        required: true,
-      },
-      confirmed: {
-        type: Boolean,
-        trim: true,
-        default: false,
-      },
-      isVisible: {
-        type: Boolean,
-        trim: true,
-      },
-      _id: false,
-    },
-  ],
-  password: {
+  email: {
     type: String,
     required: true,
-    private: true,
   },
-  isAdmin: Boolean,
-  isVerified: {
+  emailVerified: {
     type: Boolean,
     default: false,
   },
-  linkedInId: {
+  password: {
     type: String,
+    // required: true,
+    private: true,
   },
   profile: {
     type: Schema.Types.ObjectId,
     ref: 'Profile',
     required: true,
+  },
+  googleId: {
+    type: String,
   },
 });
 
@@ -77,7 +55,8 @@ UserSchema.methods.createPasswordResetToken = createPasswordResetToken;
 UserSchema.methods.createToken = createToken;
 
 // statics
-UserSchema.statics.findByPrimaryEmail = findByPrimaryEmail;
+UserSchema.statics.findByEmail = findByEmail;
+UserSchema.statics.findByEmailAndUpdate = findByEmailAndUpdate;
 
 // Post delete hooks
 UserSchema.post('findOneAndDelete', async function (user: UserDocument) {

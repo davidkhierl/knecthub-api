@@ -4,7 +4,7 @@ import UserController from '../controllers/UserController';
 import authenticate from '../middleware/authenticate';
 import checkValidationResult from '../middleware/checkValidationResult';
 import express from 'express';
-import isAdmin from '../middleware/isAdmin';
+import passport from 'passport';
 
 const router = express.Router();
 
@@ -15,7 +15,12 @@ router.post(
   '/',
   [
     body('firstName', 'First name is required').exists({ checkFalsy: true }),
-    body('lastName', 'Last name is required').exists({ checkFalsy: true }),
+    body('lastName')
+      .optional()
+      .notEmpty()
+      .bail()
+      .isAlpha('en-US', { ignore: [' ', '-'] })
+      .withMessage('Must be type of string'),
     body('email')
       .exists({ checkFalsy: true })
       .withMessage('Email is required')
@@ -48,7 +53,7 @@ router.post(
 /**
  * GET:PRIVATE {apiPrefix}/users/me
  */
-router.get('/me', authenticate, UserController.GetCurrentUser);
+router.get('/me', passport.authenticate('jwt', { session: false }), UserController.GetCurrentUser);
 
 /**
  * GET:PRIVATE {apiPrefix}/users/search?email=
@@ -99,48 +104,5 @@ router.get(
  * DELETE:PRIVATE {apiPrefix}/users/me
  */
 router.delete('/me', (_req, res) => res.send('delete current user'));
-
-/**
- * GET:ADMIN {apiPrefix}/users
- */
-router.get('/', authenticate, isAdmin, UserController.GetUsers);
-
-/**
- * PATCH:ADMIN {apiPrefix}/users/1
- */
-router.patch(
-  '/:userId',
-  authenticate,
-  isAdmin,
-  [
-    param('userId').isMongoId().withMessage('Invalid User Id'),
-    body('firstName')
-      .optional()
-      .notEmpty()
-      .bail()
-      .isAlpha('en-US', { ignore: [' ', '-'] })
-      .withMessage('Must be type of string'),
-    body('lastName')
-      .optional()
-      .notEmpty()
-      .bail()
-      .isAlpha('en-US', { ignore: [' ', '-'] })
-      .withMessage('Must be type of string'),
-    body('profile').optional(),
-    checkValidationResult,
-  ],
-  UserController.UpdateUser
-);
-
-/**
- * DELETE:ADMIN {apiPrefix}/users/1
- */
-router.delete(
-  '/:userId',
-  authenticate,
-  isAdmin,
-  [param('userId').isMongoId().withMessage('Invalid User Id'), checkValidationResult],
-  UserController.DeleteUser
-);
 
 export default router;

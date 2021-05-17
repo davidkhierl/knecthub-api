@@ -1,8 +1,10 @@
+import Token from '../models/Token';
 import { User } from '../models';
 import config from '../config';
 import express from 'express';
 import { generateAccessToken } from '../utils/token.utils';
 import jwt from 'jsonwebtoken';
+import moment from 'moment';
 
 interface DecodedAccessToken {
   sub: string;
@@ -17,16 +19,17 @@ interface DecodedAccessToken {
  * @param next Express next
  */
 export const authContinueOnFail = (
-  req: express.Request,
+  _req: express.Request,
   _res: express.Response,
   next: express.NextFunction
 ) => {
-  req.auth = {
-    continueOnFail: true,
-  };
+  // req.auth = {
+  //   continueOnFail: true,
+  // };
   next();
 };
 
+// TODO: Remove auto token refresh.
 /**
  * Authentication middleware.
  * @param req Express request
@@ -40,13 +43,13 @@ async function authenticate(
 ) {
   const { accessToken, refreshToken }: { accessToken: string; refreshToken: string } = req.cookies;
 
-  if (!accessToken || !refreshToken) {
-    if (req.auth && req.auth.continueOnFail) {
-      return next();
-    } else {
-      return res.status(401).send('Unauthorized: Missing token.');
-    }
-  }
+  // if (!accessToken || !refreshToken) {
+  //   if (req.auth && req.auth.continueOnFail) {
+  //     return next();
+  //   } else {
+  //     return res.status(401).send('Unauthorized: Missing token.');
+  //   }
+  // }
 
   try {
     const decodedAccessToken = jwt.verify(accessToken, config.JWT_SECRET) as DecodedAccessToken;
@@ -70,14 +73,29 @@ async function authenticate(
       if (typeof decodedAccessToken !== 'object')
         return res.status(401).send('Unauthorized: Invalid jwt payload');
 
-      const [newAccessToken, newRefreshToken] = await generateAccessToken(
-        decodedAccessToken.sub,
-        refreshToken
-      );
+      const decodedRefreshToken = jwt.verify(refreshToken, config.JWT_SECRET) as {
+        tokenId: string;
+        token: string;
+      };
+
+      if (typeof decodedRefreshToken !== 'object')
+        return res.status(401).send('Unauthorized: Invalid jwt payload');
 
       const user = await User.findById(decodedAccessToken.sub);
 
       if (user) req.user = user;
+
+      const refreshTokenQuery = await Token.findById(decodedRefreshToken.tokenId);
+
+      if (!refreshTokenQuery) return res.status(401).send('Unauthorized: Refresh token');
+
+      // TODO: This is temporary fix, handle multiple refresh token request in axios.
+      if (moment().diff(refreshTokenQuery.updatedAt) <= 30000) return next();
+
+      const [newAccessToken, newRefreshToken] = await generateAccessToken(
+        decodedAccessToken.sub,
+        refreshToken
+      );
 
       res
         .cookie('accessToken', newAccessToken, {

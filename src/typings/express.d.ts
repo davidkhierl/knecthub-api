@@ -1,4 +1,5 @@
 import { ValidationError } from 'express-validator';
+import { IUser } from '../models/User/user.types';
 
 interface ParamsDictionary {
   [key: string]: string;
@@ -19,7 +20,7 @@ interface StandardResponse<T = any> {
   /**
    * Helpful response message.
    */
-  message: string;
+  message?: string;
   /**
    * Optional redirect url hint.
    */
@@ -27,7 +28,13 @@ interface StandardResponse<T = any> {
   /**
    * Response status.
    */
-  success: boolean;
+  success?: boolean;
+}
+
+interface AuthSuccessResponse {
+  user: IUser;
+  accessToken: string;
+  refreshToken?: string;
 }
 
 interface ResponseError {
