@@ -1,4 +1,3 @@
-import { Document } from 'mongoose';
 import { IToken } from '../Token/token.types';
 import Token from '../../models/Token';
 import { UserDocument } from './user.types';
@@ -6,7 +5,7 @@ import { generateAccessToken } from '../../utils/token.utils';
 import { v4 as uuidv4 } from 'uuid';
 
 // Generate email verification token
-export async function createEmailVerificationToken(this: Document<UserDocument>, expiresIn?: Date) {
+export async function createEmailVerificationToken(this: UserDocument, expiresIn?: Date) {
   const token = uuidv4();
 
   const newToken = new Token({

@@ -1,4 +1,4 @@
-import { ParamsDictionary, StandardResponse } from '../typings/express';
+import { AuthSuccessResponse, ParamsDictionary, StandardResponse } from '../typings/express';
 import {
   TokenHash,
   decryptToken,
@@ -16,10 +16,7 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import mail from '../services/mail';
 
-/* -------------------------------------------------------------------------- */
-/*                           Password Reset Request                           */
-/* -------------------------------------------------------------------------- */
-
+// Send password reset link
 async function RequestResetLink(
   req: express.Request<ParamsDictionary, any, { email: string }>,
   res: express.Response<StandardResponse>
@@ -57,10 +54,7 @@ async function RequestResetLink(
   }
 }
 
-/* -------------------------------------------------------------------------- */
-/*                         Verify Password Reset Token                        */
-/* -------------------------------------------------------------------------- */
-
+// Verify Password Reset Token
 async function VerifyResetToken(
   req: express.Request<ParamsDictionary, any, any, { token: string }>,
   res: express.Response<StandardResponse>
@@ -89,13 +83,10 @@ async function VerifyResetToken(
   }
 }
 
-/* -------------------------------------------------------------------------- */
-/*                               Reset Password                               */
-/* -------------------------------------------------------------------------- */
-
+// Reset Password
 const ResetPassword = async (
   req: express.Request<ParamsDictionary, any, { password: string }, { token: string }>,
-  res: express.Response<StandardResponse>
+  res: express.Response<StandardResponse<AuthSuccessResponse>>
 ) => {
   try {
     const { password } = req.body;
@@ -156,7 +147,11 @@ const ResetPassword = async (
         httpOnly: true,
         expires: config.COOKIE_EXPIRATION,
       })
-      .send(tokenQuery.user);
+      .send({
+        data: { user: tokenQuery.user, accessToken, refreshToken },
+        message: 'Password reset success.',
+        success: true,
+      });
   } catch (error) {
     console.error(error.message);
 
@@ -179,7 +174,7 @@ async function ChangePassword(
   try {
     const { currentPassword, newPassword } = req.body;
 
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user?.id);
 
     if (!user) return res.status(404).send({ message: 'User not found', success: false });
 

@@ -27,41 +27,79 @@ export async function generateAccessToken(userId: string, refreshToken?: string)
     expiresIn: config.ACCESS_TOKEN_EXPIRATION,
   });
 
-  const NEW_REFRESH_TOKEN = uuid();
+  let NEW_REFRESH_TOKEN: string = '';
 
   if (refreshToken) {
     try {
-      await Token.findOne(
-        {
-          user: userId,
-          token: refreshToken,
-          type: 'refresh_token',
-          consumed: false,
-          invalidated: false,
-        },
-        (err: any, token: any) => {
-          if (err) throw new Error(err);
+      const decodedRefreshToken = jwt.verify(refreshToken, config.JWT_SECRET) as {
+        tokenId: string;
+        token: string;
+      };
 
-          if (!token) throw new Error('Refresh token not found');
+      const tokenQuery = await Token.findOne({
+        user: userId,
+        token: decodedRefreshToken.token,
+        type: 'refresh_token',
+        consumed: false,
+        invalidated: false,
+      });
 
-          if (moment().diff(token.expiresIn) >= 0) throw new Error('Refresh token expired');
+      if (!tokenQuery) {
+        const tokenQueryId = await Token.findById(decodedRefreshToken.tokenId);
 
-          token.token = NEW_REFRESH_TOKEN;
-          token.expiresIn = config.REFRESH_TOKEN_EXPIRATION;
-          token.save();
-        }
-      );
+        if (!tokenQueryId) throw new Error('Refresh token not found');
+
+        if (moment().diff(tokenQueryId.expiresIn) >= 0) throw new Error('Refresh token expired');
+
+        const newRefreshToken = uuid();
+
+        tokenQueryId.token = newRefreshToken;
+
+        tokenQueryId.expiresIn = config.REFRESH_TOKEN_EXPIRATION;
+
+        await tokenQueryId.save();
+
+        NEW_REFRESH_TOKEN = jwt.sign(
+          { tokenId: tokenQueryId._id, token: newRefreshToken },
+          config.JWT_SECRET,
+          { expiresIn: '182d' }
+        );
+      }
+
+      if (tokenQuery) {
+        if (moment().diff(tokenQuery.expiresIn) >= 0) throw new Error('Refresh token expired');
+
+        const newRefreshToken = uuid();
+
+        tokenQuery.token = newRefreshToken;
+
+        tokenQuery.expiresIn = config.REFRESH_TOKEN_EXPIRATION;
+
+        await tokenQuery.save();
+
+        NEW_REFRESH_TOKEN = jwt.sign(
+          { tokenId: tokenQuery._id, token: newRefreshToken },
+          config.JWT_SECRET,
+          { expiresIn: '182d' }
+        );
+      }
     } catch (error) {
       throw new Error(error.message);
     }
   } else {
     try {
-      await Token.create({
+      const token = new Token({
         user: userId,
-        token: NEW_REFRESH_TOKEN,
+        token: uuid(),
         type: 'refresh_token',
         expiresIn: config.REFRESH_TOKEN_EXPIRATION,
       });
+
+      NEW_REFRESH_TOKEN = jwt.sign({ tokenId: token._id, token: token.token }, config.JWT_SECRET, {
+        expiresIn: '182d',
+      });
+
+      await token.save();
     } catch (error) {
       throw new Error(error.message);
     }
