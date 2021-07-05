@@ -18,7 +18,7 @@ import { resourceLocation } from '../helpers/response.helpers';
 /* -------------------------------------------------------------------------- */
 async function GetUsers(_req: express.Request, res: express.Response<StandardResponse<IUser[]>>) {
   await User.find({}, (err, users) => {
-    if (err) return res.status(500).send({ message: err, success: false });
+    if (err) return res.status(500).send({ message: err.message, success: false });
 
     return res.send({ message: 'All users.', success: true, data: users });
   });
