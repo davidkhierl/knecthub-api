@@ -22,6 +22,10 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
+  "ts-node": {
+    "files": true
+  },
+  "files": ["src/server.ts", "src/typings/**/*"],
   "exclude": ["node_modules", "build"],
-  "include": ["./src/**/*.tsx", "./src/**/*.ts"]
+  "include": ["src/**/*"]
 }
