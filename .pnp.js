@@ -46,7 +46,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/helmet", "npm:4.0.0"],
             ["@types/jsonwebtoken", "npm:8.5.4"],
             ["@types/lodash", "npm:4.14.171"],
-            ["@types/node", "npm:14.17.5"],
+            ["@types/node", "npm:14.17.6"],
             ["@types/passport", "npm:1.0.7"],
             ["@types/passport-google-oauth", "npm:1.0.42"],
             ["@types/passport-jwt", "npm:3.0.6"],
@@ -57,16 +57,16 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["bcryptjs", "npm:2.4.3"],
             ["cookie-parser", "npm:1.4.5"],
             ["cors", "npm:2.8.5"],
-            ["crypto-js", "npm:4.0.0"],
+            ["crypto-js", "npm:4.1.1"],
             ["dayjs", "npm:1.10.6"],
             ["dotenv", "npm:10.0.0"],
             ["express", "npm:4.17.1"],
-            ["express-validator", "npm:6.12.0"],
+            ["express-validator", "npm:6.12.1"],
             ["helmet", "npm:4.6.0"],
             ["jsonwebtoken", "npm:8.5.1"],
             ["lodash", "npm:4.17.21"],
             ["moment", "npm:2.29.1"],
-            ["mongoose", "npm:5.13.3"],
+            ["mongoose", "npm:5.13.5"],
             ["nodemon", "npm:2.0.12"],
             ["passport", "npm:0.4.1"],
             ["passport-google-oauth", "npm:2.0.0"],
@@ -417,17 +417,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],
           "linkType": "HARD",
         }],
-        ["npm:14.17.5", {
-          "packageLocation": "./.yarn/cache/@types-node-npm-14.17.5-7c88786ff6-bd2c9bd617.zip/node_modules/@types/node/",
+        ["npm:14.17.6", {
+          "packageLocation": "./.yarn/cache/@types-node-npm-14.17.6-e168cf390d-4b2464f39d.zip/node_modules/@types/node/",
           "packageDependencies": [
-            ["@types/node", "npm:14.17.5"]
-          ],
-          "linkType": "HARD",
-        }],
-        ["npm:15.14.1", {
-          "packageLocation": "./.yarn/cache/@types-node-npm-15.14.1-991c0e1117-6340f64e43.zip/node_modules/@types/node/",
-          "packageDependencies": [
-            ["@types/node", "npm:15.14.1"]
+            ["@types/node", "npm:14.17.6"]
           ],
           "linkType": "HARD",
         }]
@@ -1509,10 +1502,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]
       ]],
       ["crypto-js", [
-        ["npm:4.0.0", {
-          "packageLocation": "./.yarn/cache/crypto-js-npm-4.0.0-cc8d8715a9-fdd1415b9e.zip/node_modules/crypto-js/",
+        ["npm:4.1.1", {
+          "packageLocation": "./.yarn/cache/crypto-js-npm-4.1.1-38a3b8c19d-c12bbf7372.zip/node_modules/crypto-js/",
           "packageDependencies": [
-            ["crypto-js", "npm:4.0.0"]
+            ["crypto-js", "npm:4.1.1"]
           ],
           "linkType": "HARD",
         }]
@@ -1994,10 +1987,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]
       ]],
       ["express-validator", [
-        ["npm:6.12.0", {
-          "packageLocation": "./.yarn/cache/express-validator-npm-6.12.0-c925e57cd7-99ba3fb484.zip/node_modules/express-validator/",
+        ["npm:6.12.1", {
+          "packageLocation": "./.yarn/cache/express-validator-npm-6.12.1-423bdb0d84-8a0786582f.zip/node_modules/express-validator/",
           "packageDependencies": [
-            ["express-validator", "npm:6.12.0"],
+            ["express-validator", "npm:6.12.1"],
             ["lodash", "npm:4.17.21"],
             ["validator", "npm:13.5.2"]
           ],
@@ -3013,7 +3006,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/helmet", "npm:4.0.0"],
             ["@types/jsonwebtoken", "npm:8.5.4"],
             ["@types/lodash", "npm:4.14.171"],
-            ["@types/node", "npm:14.17.5"],
+            ["@types/node", "npm:14.17.6"],
             ["@types/passport", "npm:1.0.7"],
             ["@types/passport-google-oauth", "npm:1.0.42"],
             ["@types/passport-jwt", "npm:3.0.6"],
@@ -3024,16 +3017,16 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["bcryptjs", "npm:2.4.3"],
             ["cookie-parser", "npm:1.4.5"],
             ["cors", "npm:2.8.5"],
-            ["crypto-js", "npm:4.0.0"],
+            ["crypto-js", "npm:4.1.1"],
             ["dayjs", "npm:1.10.6"],
             ["dotenv", "npm:10.0.0"],
             ["express", "npm:4.17.1"],
-            ["express-validator", "npm:6.12.0"],
+            ["express-validator", "npm:6.12.1"],
             ["helmet", "npm:4.6.0"],
             ["jsonwebtoken", "npm:8.5.1"],
             ["lodash", "npm:4.17.21"],
             ["moment", "npm:2.29.1"],
-            ["mongoose", "npm:5.13.3"],
+            ["mongoose", "npm:5.13.5"],
             ["nodemon", "npm:2.0.12"],
             ["passport", "npm:0.4.1"],
             ["passport-google-oauth", "npm:2.0.0"],
@@ -3572,10 +3565,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],
           "linkType": "SOFT",
         }],
-        ["virtual:21053a0200bdaf0dbe90ba3e53af78b2d57611950406afa6acdcb695ef319075bc34d0e141b80acb886bb6f56bef24d5a666f21de3c5cee835b2d9c085c49f8e#npm:3.6.10", {
-          "packageLocation": "./.yarn/$$virtual/mongodb-virtual-aa0ce19cf1/0/cache/mongodb-npm-3.6.10-f377962fb3-259930dd39.zip/node_modules/mongodb/",
+        ["virtual:ef6baa01efe293a048f92eb5d9db5b83820e3a8d753a08b52d520bf6f7695bcb669ebb4ac5094a8aacfb46fd1b6b2da7ab8d021c61c7a885a09966865db9fa7a#npm:3.6.10", {
+          "packageLocation": "./.yarn/$$virtual/mongodb-virtual-42ca2717eb/0/cache/mongodb-npm-3.6.10-f377962fb3-259930dd39.zip/node_modules/mongodb/",
           "packageDependencies": [
-            ["mongodb", "virtual:21053a0200bdaf0dbe90ba3e53af78b2d57611950406afa6acdcb695ef319075bc34d0e141b80acb886bb6f56bef24d5a666f21de3c5cee835b2d9c085c49f8e#npm:3.6.10"],
+            ["mongodb", "virtual:ef6baa01efe293a048f92eb5d9db5b83820e3a8d753a08b52d520bf6f7695bcb669ebb4ac5094a8aacfb46fd1b6b2da7ab8d021c61c7a885a09966865db9fa7a#npm:3.6.10"],
             ["aws4", null],
             ["bl", "npm:2.2.1"],
             ["bson", "npm:1.1.5"],
@@ -3601,19 +3594,19 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]
       ]],
       ["mongoose", [
-        ["npm:5.13.3", {
-          "packageLocation": "./.yarn/cache/mongoose-npm-5.13.3-21053a0200-3b77b9e6c6.zip/node_modules/mongoose/",
+        ["npm:5.13.5", {
+          "packageLocation": "./.yarn/cache/mongoose-npm-5.13.5-ef6baa01ef-8c8b08da0e.zip/node_modules/mongoose/",
           "packageDependencies": [
-            ["mongoose", "npm:5.13.3"],
+            ["mongoose", "npm:5.13.5"],
             ["@types/mongodb", "npm:3.6.1"],
-            ["@types/node", "npm:15.14.1"],
             ["bson", "npm:1.1.5"],
             ["kareem", "npm:2.3.2"],
-            ["mongodb", "virtual:21053a0200bdaf0dbe90ba3e53af78b2d57611950406afa6acdcb695ef319075bc34d0e141b80acb886bb6f56bef24d5a666f21de3c5cee835b2d9c085c49f8e#npm:3.6.10"],
-            ["mongoose-legacy-pluralize", "virtual:21053a0200bdaf0dbe90ba3e53af78b2d57611950406afa6acdcb695ef319075bc34d0e141b80acb886bb6f56bef24d5a666f21de3c5cee835b2d9c085c49f8e#npm:1.0.2"],
+            ["mongodb", "virtual:ef6baa01efe293a048f92eb5d9db5b83820e3a8d753a08b52d520bf6f7695bcb669ebb4ac5094a8aacfb46fd1b6b2da7ab8d021c61c7a885a09966865db9fa7a#npm:3.6.10"],
+            ["mongoose-legacy-pluralize", "virtual:ef6baa01efe293a048f92eb5d9db5b83820e3a8d753a08b52d520bf6f7695bcb669ebb4ac5094a8aacfb46fd1b6b2da7ab8d021c61c7a885a09966865db9fa7a#npm:1.0.2"],
             ["mpath", "npm:0.8.3"],
             ["mquery", "npm:3.2.5"],
             ["ms", "npm:2.1.2"],
+            ["optional-require", "npm:1.0.3"],
             ["regexp-clone", "npm:1.0.0"],
             ["safe-buffer", "npm:5.2.1"],
             ["sift", "npm:13.5.2"],
@@ -3630,12 +3623,12 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],
           "linkType": "SOFT",
         }],
-        ["virtual:21053a0200bdaf0dbe90ba3e53af78b2d57611950406afa6acdcb695ef319075bc34d0e141b80acb886bb6f56bef24d5a666f21de3c5cee835b2d9c085c49f8e#npm:1.0.2", {
-          "packageLocation": "./.yarn/$$virtual/mongoose-legacy-pluralize-virtual-b06b91638f/0/cache/mongoose-legacy-pluralize-npm-1.0.2-2fbdda9a5a-a1f86450b3.zip/node_modules/mongoose-legacy-pluralize/",
+        ["virtual:ef6baa01efe293a048f92eb5d9db5b83820e3a8d753a08b52d520bf6f7695bcb669ebb4ac5094a8aacfb46fd1b6b2da7ab8d021c61c7a885a09966865db9fa7a#npm:1.0.2", {
+          "packageLocation": "./.yarn/$$virtual/mongoose-legacy-pluralize-virtual-a021ee1ae0/0/cache/mongoose-legacy-pluralize-npm-1.0.2-2fbdda9a5a-a1f86450b3.zip/node_modules/mongoose-legacy-pluralize/",
           "packageDependencies": [
-            ["mongoose-legacy-pluralize", "virtual:21053a0200bdaf0dbe90ba3e53af78b2d57611950406afa6acdcb695ef319075bc34d0e141b80acb886bb6f56bef24d5a666f21de3c5cee835b2d9c085c49f8e#npm:1.0.2"],
+            ["mongoose-legacy-pluralize", "virtual:ef6baa01efe293a048f92eb5d9db5b83820e3a8d753a08b52d520bf6f7695bcb669ebb4ac5094a8aacfb46fd1b6b2da7ab8d021c61c7a885a09966865db9fa7a#npm:1.0.2"],
             ["@types/mongoose", null],
-            ["mongoose", "npm:5.13.3"]
+            ["mongoose", "npm:5.13.5"]
           ],
           "packagePeers": [
             "@types/mongoose",
@@ -5326,7 +5319,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@tsconfig/node12", "npm:1.0.9"],
             ["@tsconfig/node14", "npm:1.0.1"],
             ["@tsconfig/node16", "npm:1.0.1"],
-            ["@types/node", "npm:14.17.5"],
+            ["@types/node", "npm:14.17.6"],
             ["@types/swc__core", null],
             ["@types/swc__wasm", null],
             ["@types/types__node", null],

@@ -15,11 +15,17 @@ routes.all('/', (req, res) =>
 );
 
 routes.use('/auth', authRoutes);
+
 // routes.use('/connections', connectionRoutes);
+
 routes.use('/email', emailRoutes);
+
 routes.use('/password', passwordRoutes);
+
 // routes.use('/profiles', profileRoutes);
+
 routes.use('/users', usersRoutes);
+
 routes.use('*', (_req, res) => res.status(400).send('404 Not Found'));
 
 export default routes;

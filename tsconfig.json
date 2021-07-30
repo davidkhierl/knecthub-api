@@ -25,7 +25,7 @@
   "ts-node": {
     "files": true
   },
-  "files": ["src/server.ts", "src/typings/**/*"],
+  "files": ["src/server.ts", "src/typings/express.d.ts", "src/typings/global.d.ts"],
   "exclude": ["node_modules", "build"],
   "include": ["src/**/*"]
 }
